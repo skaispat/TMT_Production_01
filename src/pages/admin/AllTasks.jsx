@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 
 const AllTasks = () => {
   // Google Sheets configuration
@@ -20,28 +18,46 @@ const AllTasks = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editedTasks, setEditedTasks] = useState({})
+  const [username, setUsername] = useState("")
+  const [isAdmin, setIsAdmin] = useState(false)
   
+  // Pagination state
+  const [pageSize, setPageSize] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMoreTasks, setHasMoreTasks] = useState(true)
+
+  // Ref for infinite scroll
+  const observerRef = useRef(null)
+  const lastTaskElementRef = useCallback(node => {
+    if (isLoading) return
+    if (observerRef.current) observerRef.current.disconnect()
+    
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMoreTasks) {
+        setCurrentPage(prevPage => prevPage + 1)
+      }
+    })
+    
+    if (node) observerRef.current.observe(node)
+  }, [isLoading, hasMoreTasks])
+
   // Format a date string to dd/mm/yyyy
   const formatDate = (dateString) => {
-    // Check if dateString is valid
     if (!dateString) return '';
     
     try {
-      // Parse the date - handle both ISO format and yyyy-mm-dd format
       const date = new Date(dateString);
       
-      // Check if date is valid
       if (isNaN(date.getTime())) return dateString;
       
-      // Format as dd/mm/yyyy
       const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // +1 because months are 0-indexed
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
       
       return `${day}/${month}/${year}`;
     } catch (error) {
       console.error("Error formatting date:", error);
-      return dateString; // Return original string if there's an error
+      return dateString;
     }
   }
   
@@ -50,18 +66,18 @@ const AllTasks = () => {
     if (!formattedDate) return '';
     
     try {
-      // If it's already in ISO format with time component, extract just the date part
-      if (formattedDate.includes('T')) {
-        return formattedDate.split('T')[0]; // Extract just the yyyy-mm-dd part
-      }
-      
-      // Try to parse dd/mm/yyyy format
+      // Specific handling for dd/mm/yyyy format
       if (formattedDate.includes('/')) {
         const [day, month, year] = formattedDate.split('/');
-        // Create date and format as yyyy-mm-dd (without time component)
-        const date = new Date(year, month - 1, day);
+        // Ensure day, month, and year are valid numbers
+        const dayNum = parseInt(day, 10);
+        const monthNum = parseInt(month, 10);
+        const yearNum = parseInt(year, 10);
         
-        // Format as yyyy-mm-dd explicitly
+        // Create date with these values (month is 0-indexed in JS Date)
+        const date = new Date(yearNum, monthNum - 1, dayNum);
+        
+        // Format back to yyyy-mm-dd
         const yyyy = date.getFullYear();
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
@@ -69,7 +85,11 @@ const AllTasks = () => {
         return `${yyyy}-${mm}-${dd}`;
       }
       
-      // If it's not in our expected format, return as is
+      // Handle other potential date formats
+      if (formattedDate.includes('T')) {
+        return formattedDate.split('T')[0];
+      }
+      
       return formattedDate;
     } catch (error) {
       console.error("Error parsing date:", error);
@@ -77,20 +97,18 @@ const AllTasks = () => {
     }
   }
 
-  // Fetch tasks from Google Sheets
-// Modified useEffect with debugging and improved column matching
-useEffect(() => {
+  // Check user credentials
+  useEffect(() => {
     const storedUsername = sessionStorage.getItem('username')
     
     if (!storedUsername) {
-      // Redirect to login if no username found
-      navigate('/login')
+      window.location.href = '/login'
       return
     }
 
     setUsername(storedUsername)
     setIsAdmin(storedUsername.toLowerCase() === 'admin')
-  }, [navigate])
+  }, [])
 
   // Fetch tasks from Google Sheets
   useEffect(() => {
@@ -100,7 +118,6 @@ useEffect(() => {
       try {
         setIsLoading(true)
         
-        // Create form data for the request
         const formData = new FormData()
         formData.append('action', 'fetchTasks')
         formData.append('sheetId', SHEET_ID)
@@ -114,39 +131,51 @@ useEffect(() => {
         const data = await response.json()
         
         if (data && data.success) {
-          // Find column indices
-          const colLIndex = 11; // L column (0-indexed)
-          const colMIndex = 12; // M column (0-indexed)
-          const userColumnIndex = 4; // E column (0-indexed)
+          const colEIndex = 4;  // Username column
+          const colLIndex = 11; // Date column
+          const colMIndex = 12; // Completion column
           
-          // Find the correct property names for columns
+          const colEId = data.headers[colEIndex]?.id || 'colE';
           const colLId = data.headers[colLIndex]?.id || 'colL';
           const colMId = data.headers[colMIndex]?.id || 'colM';
-          const userColumnId = data.headers[userColumnIndex]?.id || 'colE';
           
-          // Filter tasks based on user role
+          // Get today's exact date
+          const today = new Date();
+          const formatDateString = (date) => {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          }
+          
+          const todayString = formatDateString(today);
+          
           const filteredTasks = data.tasks
             .filter(task => {
-              // Admin sees all tasks
+              // For admin, show all tasks, otherwise filter by username
               if (isAdmin) return true;
               
-              // Regular users see only tasks assigned to them
-              return task[userColumnId] === username;
+              // Check if username in column E matches
+              const taskUsername = task[colEId] ? task[colEId].toString().trim().toLowerCase() : '';
+              const currentUsername = username.trim().toLowerCase();
+              
+              return taskUsername === currentUsername;
             })
             .filter(task => {
-              // Additional filter for L not null, M null
+              // Verify column L matches today's date exactly
+              const taskDate = task[colLId] ? parseFormattedDate(task[colLId]) : '';
+              const isValidDate = taskDate === todayString;
+              
+              // Ensure column L is not null/empty
               const hasColL = task[colLId] !== undefined && 
                              task[colLId] !== null && 
                              task[colLId].toString().trim() !== '';
                              
+              // Ensure column M is empty
               const isColMEmpty = task[colMId] === undefined || 
                                  task[colMId] === null || 
                                  task[colMId].toString().trim() === '';
               
-              return hasColL && isColMEmpty;
+              return hasColL && isValidDate && isColMEmpty;
             })
             .map(task => {
-              // Include columns L and M in the filtered data
               const filteredTask = { 
                 _id: task._id, 
                 _rowIndex: task._rowIndex,
@@ -154,7 +183,6 @@ useEffect(() => {
                 [colMId]: task[colMId]
               }
               
-              // Add the visible columns 
               data.headers.forEach(header => {
                 filteredTask[header.id] = task[header.id]
               })
@@ -162,15 +190,16 @@ useEffect(() => {
               return filteredTask
             })
           
-          // Determine visible headers (excluding first few administrative columns)
           const visibleHeaders = data.headers.filter((header, index) => 
-            index >= 1 && index <= 10 // Columns B to K
+            index >= 1 && index <= 10
           )
           
           setTableHeaders(visibleHeaders)
           setTasks(filteredTasks)
           
-          // Initialize editedTasks with the original task data
+          setCurrentPage(1)
+          setHasMoreTasks(filteredTasks.length > pageSize)
+          
           const initialEditedTasks = {}
           filteredTasks.forEach(task => {
             initialEditedTasks[task._id] = { ...task }
@@ -191,47 +220,39 @@ useEffect(() => {
     fetchTasksFromGoogleSheets()
   }, [username, isAdmin])
 
-  // Logout handler
-  const handleLogout = () => {
-    sessionStorage.removeItem('username')
-    navigate('/login')
-  }
+  // Pagination and filtering logic
+  const filteredPaginatedTasks = tasks
+    .filter((task) => {
+      const statusHeader = tableHeaders.find(h => 
+        h.label.toLowerCase().includes('status')
+      )?.id
 
-  // Filter tasks based on search query and filters
-  const filteredTasks = tasks.filter((task) => {
-    // Find status and frequency columns dynamically
-    const statusHeader = tableHeaders.find(h => 
-      h.label.toLowerCase().includes('status')
-    )?.id
+      const frequencyHeader = tableHeaders.find(h => 
+        h.label.toLowerCase().includes('frequency')
+      )?.id
 
-    const frequencyHeader = tableHeaders.find(h => 
-      h.label.toLowerCase().includes('frequency')
-    )?.id
+      if (filterStatus !== "all" && 
+          statusHeader && 
+          task[statusHeader]?.toString().toLowerCase() !== filterStatus) {
+        return false
+      }
 
-    // Filter by status
-    if (filterStatus !== "all" && 
-        statusHeader && 
-        task[statusHeader]?.toString().toLowerCase() !== filterStatus) {
-      return false
-    }
+      if (filterFrequency !== "all" && 
+          frequencyHeader && 
+          task[frequencyHeader]?.toString().toLowerCase() !== filterFrequency) {
+        return false
+      }
 
-    // Filter by frequency
-    if (filterFrequency !== "all" && 
-        frequencyHeader && 
-        task[frequencyHeader]?.toString().toLowerCase() !== filterFrequency) {
-      return false
-    }
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase()
+        return Object.values(task).some(value => 
+          value && value.toString().toLowerCase().includes(searchLower)
+        )
+      }
 
-    // Filter by search query
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase()
-      return Object.values(task).some(value => 
-        value && value.toString().toLowerCase().includes(searchLower)
-      )
-    }
-
-    return true
-  })
+      return true
+    })
+    .slice(0, currentPage * pageSize)
 
   // Toggle task selection
   const toggleTaskSelection = (taskId) => {
@@ -246,11 +267,25 @@ useEffect(() => {
 
   // Toggle all tasks selection
   const toggleAllTasks = () => {
-    if (selectedTasks.length === filteredTasks.length) {
+    if (selectedTasks.length === filteredPaginatedTasks.length) {
       setSelectedTasks([])
     } else {
-      setSelectedTasks(filteredTasks.map((task) => task._id))
+      setSelectedTasks(filteredPaginatedTasks.map((task) => task._id))
     }
+  }
+
+  // Logout handler
+  const handleLogout = () => {
+    sessionStorage.removeItem('username')
+    window.location.href = '/login'
+  }
+
+  // Show toast message
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type })
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "" })
+    }, 3000)
   }
 
   // Handle task field editing
@@ -262,14 +297,6 @@ useEffect(() => {
         [fieldId]: value
       }
     }))
-  }
-
-  // Show toast message
-  const showToast = (message, type) => {
-    setToast({ show: true, message, type })
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "" })
-    }, 3000)
   }
 
   // Handle file selection
@@ -287,7 +314,7 @@ useEffect(() => {
     }
   }
 
-  // Upload file for a specific task
+  // Upload file method
   const uploadFile = async (taskId, file) => {
     if (!file) {
       showToast("No file selected", "error")
@@ -295,22 +322,18 @@ useEffect(() => {
     }
 
     try {
-      // Here you would implement the actual file upload logic
-      // For example, converting to base64 and sending to server
-      
       const reader = new FileReader()
       reader.onload = async (e) => {
         const base64Data = e.target.result.split(',')[1]
         
-        // Create form data for file upload
         const formData = new FormData()
         formData.append('action', 'uploadFile')
-        formData.append('sheetName', SHEET_NAME) // Add missing sheetName parameter
+        formData.append('sheetName', SHEET_NAME)
         formData.append('taskId', taskId)
         formData.append('fileName', file.name)
         formData.append('fileData', base64Data)
         formData.append('rowIndex', tasks.find(t => t._id === taskId)._rowIndex)
-        formData.append('columnP', 'P') // Upload to column P
+        formData.append('columnP', 'P')
         formData.append('folderUrl', 'https://drive.google.com/drive/u/0/folders/1TBpIcv5bbAsmlje7lpnPFpJRDY5nekTE')
         
         try {
@@ -323,7 +346,6 @@ useEffect(() => {
           
           if (result.success) {
             showToast(`File uploaded successfully: ${file.name}`, "success")
-            // Update local state if needed
           } else {
             throw new Error(result.error || "Failed to upload file")
           }
@@ -340,7 +362,7 @@ useEffect(() => {
     }
   }
 
-  // Handle form submission with file uploads
+  // Form submission handler
   const handleSubmit = async () => {
     if (selectedTasks.length === 0) {
       showToast("Please select at least one task", "error")
@@ -350,99 +372,33 @@ useEffect(() => {
     setIsSubmitting(true)
 
     try {
-      // First, upload any pending images
-      const uploadPromises = []
-      
-      // Create a map to store image URLs by task ID
-      const imageUrlsByTaskId = {}
-      
-      // Process each selected task that has a pending image upload
-      for (const taskId of selectedTasks) {
-        if (selectedFiles[taskId]) {
-          const file = selectedFiles[taskId]
-          const uploadPromise = new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = async (e) => {
-              const base64Data = e.target.result.split(',')[1]
-              
-              // Create form data for file upload
-              const formData = new FormData()
-              formData.append('action', 'uploadFile')
-              formData.append('sheetName', SHEET_NAME) // Add missing sheetName parameter
-              formData.append('taskId', taskId)
-              formData.append('fileName', file.name)
-              formData.append('fileData', base64Data)
-              formData.append('rowIndex', tasks.find(t => t._id === taskId)._rowIndex)
-              formData.append('folderUrl', 'https://drive.google.com/drive/u/0/folders/1TBpIcv5bbAsmlje7lpnPFpJRDY5nekTE')
-              
-              try {
-                const response = await fetch(SCRIPT_URL, {
-                  method: 'POST',
-                  body: formData
-                })
-                
-                const result = await response.json()
-                
-                if (result.success) {
-                  // Store the image URL for this task
-                  imageUrlsByTaskId[taskId] = result.fileUrl
-                  resolve()
-                } else {
-                  reject(new Error(result.error || "Failed to upload file"))
-                }
-              } catch (err) {
-                reject(err)
-              }
-            }
-            
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-          })
-          
-          uploadPromises.push(uploadPromise)
-        }
-      }
-      
-      // Wait for all image uploads to complete
-      await Promise.all(uploadPromises).catch(error => {
-        console.error("Error uploading images:", error)
-        showToast("Some images failed to upload", "error")
-        // Continue with the form submission even if some images fail
-      })
-
       // Prepare tasks to be updated
-   // Prepare tasks to be updated
-const tasksToUpdate = selectedTasks.map(taskId => {
-    const task = editedTasks[taskId]
-    const updates = {}
-    
-    // Add all editable fields to updates with proper date formatting
-    tableHeaders.forEach(header => {
-      // Check if this is a date field
-      if (header.label.toLowerCase().includes('date')) {
-        // Ensure date is in yyyy-mm-dd format (no time component)
-        const parsedDate = parseFormattedDate(task[header.id])
-        updates[header.id] = parsedDate
-      } else {
-        updates[header.id] = task[header.id]
-      }
-    })
-    
-    // Add today's date to column M
-    const today = new Date();
-    const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    updates['colM'] = formattedToday;
-    
-    // Add the image URL to column P if we have one for this task
-    if (imageUrlsByTaskId[taskId]) {
-      updates['colP'] = imageUrlsByTaskId[taskId]
-    }
-    
-    return {
-      rowIndex: task._rowIndex,
-      updates: updates
-    }
-  })
+      const tasksToUpdate = selectedTasks.map(taskId => {
+        const task = editedTasks[taskId]
+        const updates = {}
+        
+        // Add all editable fields to updates with proper date formatting
+        tableHeaders.forEach(header => {
+          // Check if this is a date field
+          if (header.label.toLowerCase().includes('date')) {
+            // Ensure date is in yyyy-mm-dd format (no time component)
+            const parsedDate = parseFormattedDate(task[header.id])
+            updates[header.id] = parsedDate
+          } else {
+            updates[header.id] = task[header.id]
+          }
+        })
+        
+        // Add today's date to column M
+        const today = new Date();
+        const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        updates['colM'] = formattedToday;
+        
+        return {
+          rowIndex: task._rowIndex,
+          updates: updates
+        }
+      })
 
       // Create form data for batch update
       const formData = new FormData()
@@ -491,7 +447,7 @@ const tasksToUpdate = selectedTasks.map(taskId => {
   }
 
   // Render loading state
-  if (isLoading) {
+  if (isLoading && currentPage === 1) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
@@ -499,6 +455,7 @@ const tasksToUpdate = selectedTasks.map(taskId => {
     )
   }
 
+  // Render error state
   // Render error state
   if (error) {
     return (
@@ -518,6 +475,7 @@ const tasksToUpdate = selectedTasks.map(taskId => {
 
   return (
     <div className="space-y-6">
+      {/* Existing header and logout button */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-purple-700">
           {isAdmin ? "All Tasks (Admin View)" : `My Tasks (${username})`}
@@ -529,6 +487,8 @@ const tasksToUpdate = selectedTasks.map(taskId => {
           Logout
         </button>
       </div>
+
+      {/* Existing search and filter section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 className="text-2xl font-bold text-purple-700">All Tasks</h1>
         <button
@@ -542,7 +502,9 @@ const tasksToUpdate = selectedTasks.map(taskId => {
         </button>
       </div>
 
+      {/* Tasks table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Existing filter inputs */}
         <div className="flex flex-col md:flex-row gap-4 p-4 border-b">
           <div className="flex-1">
             <input
@@ -575,6 +537,7 @@ const tasksToUpdate = selectedTasks.map(taskId => {
           </select>
         </div>
 
+        {/* Tasks table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -582,7 +545,7 @@ const tasksToUpdate = selectedTasks.map(taskId => {
                 <th className="px-4 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedTasks.length === filteredTasks.length && filteredTasks.length > 0}
+                    checked={selectedTasks.length === filteredPaginatedTasks.length && filteredPaginatedTasks.length > 0}
                     onChange={toggleAllTasks}
                     className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                   />
@@ -601,9 +564,13 @@ const tasksToUpdate = selectedTasks.map(taskId => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredTasks.length > 0 ? (
-                filteredTasks.map((task) => (
-                  <tr key={task._id} className="hover:bg-gray-50">
+              {filteredPaginatedTasks.length > 0 ? (
+                filteredPaginatedTasks.map((task, index) => (
+                  <tr 
+                    key={task._id} 
+                    ref={index === filteredPaginatedTasks.length - 1 ? lastTaskElementRef : null}
+                    className="hover:bg-gray-50"
+                  >
                     <td className="px-4 py-4">
                       <input
                         type="checkbox"
@@ -665,6 +632,13 @@ const tasksToUpdate = selectedTasks.map(taskId => {
             </tbody>
           </table>
         </div>
+
+        {/* Loading indicator for pagination */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
+        )}
       </div>
 
       {/* Toast Notification */}

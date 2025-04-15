@@ -8,31 +8,44 @@ const AdminLayout = ({ children }) => {
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [username, setUsername] = useState("")
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // Check authentication on component mount
   useEffect(() => {
     const storedUsername = sessionStorage.getItem('username')
     
-    if (!storedUsername || storedUsername.toLowerCase() !== 'admin') {
-      // Redirect to login if not an admin
+    if (!storedUsername) {
+      // Redirect to login if not logged in
       navigate('/login')
       return
     }
 
     setUsername(storedUsername)
+    
+    // Check if user is admin
+    setIsAdmin(storedUsername.toLowerCase() === 'admin')
   }, [navigate])
 
   // Logout handler
   const handleLogout = () => {
     sessionStorage.removeItem('username')
+    sessionStorage.removeItem('role')
     navigate('/login')
   }
 
-  const routes = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: "home" },
-    { href: "/admin/assign-task", label: "Assign Task", icon: "check-square" },
-    { href: "/admin/tasks", label: "All Tasks", icon: "clipboard-list" },
+  // Define routes based on user role
+  let routes = [
+    { href: "/dashboard/tasks", label: "All Tasks", icon: "clipboard-list" },
   ]
+
+  // Add admin-only routes
+  if (isAdmin) {
+    routes = [
+      { href: "/dashboard/admin", label: "Dashboard", icon: "home" },
+      { href: "/dashboard/assign-task", label: "Assign Task", icon: "check-square" },
+      ...routes,
+    ]
+  }
 
   const getIcon = (iconName) => {
     switch (iconName) {
@@ -53,7 +66,7 @@ const AdminLayout = ({ children }) => {
       <aside className="w-64 hidden md:flex flex-col bg-white border-r border-gray-100 shadow-sm">
         <div className="h-16 px-6 flex items-center font-bold text-xl text-blue-600 border-b border-gray-100 bg-blue-50">
           <i className="fas fa-clipboard-list mr-3 text-blue-500"></i> 
-          <span className="tracking-tight">Admin Panel</span>
+          <span className="tracking-tight">Task Management</span>
         </div>
         <nav className="flex-1 px-3 py-6 overflow-y-auto">
           <ul className="space-y-1">
@@ -77,10 +90,10 @@ const AdminLayout = ({ children }) => {
         <div className="border-t border-gray-100 p-4 flex items-center justify-between bg-blue-50">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
-              {username ? username.charAt(0).toUpperCase() : 'A'}
+              {username ? username.charAt(0).toUpperCase() : 'U'}
             </div>
             <div className="leading-tight">
-              <p className="text-sm font-bold text-gray-800">Admin</p>
+              <p className="text-sm font-bold text-gray-800">{isAdmin ? 'Admin' : 'User'}</p>
               <p className="text-xs text-gray-500">{username}</p>
             </div>
           </div>
@@ -108,7 +121,7 @@ const AdminLayout = ({ children }) => {
         } transition-transform duration-300 ease-in-out md:hidden`}
       >
         <div className="h-16 px-6 flex items-center justify-between border-b border-gray-100 bg-blue-50">
-          <span className="text-xl font-bold text-blue-600 tracking-tight">Admin Panel</span>
+          <span className="text-xl font-bold text-blue-600 tracking-tight">Task Management</span>
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
             className="text-gray-500 hover:text-gray-700"

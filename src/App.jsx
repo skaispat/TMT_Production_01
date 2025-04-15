@@ -5,16 +5,31 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LoginPage from "./pages/LoginPage"
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminAssignTask from "./pages/admin/AssignTask"
-import UserDashboard from "./pages/user/Dashboard"
-import UserTasks from "./pages/user/Tasks"
-import AdminLayout from "./components/layout/AdminLayout"
-import UserLayout from "./components/layout/UserLayout"
 import AllTasks from "./pages/admin/AllTasks"
+import AdminLayout from "./components/layout/AdminLayout"
 import "./index.css"
+
+// Auth wrapper component to protect routes
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const username = sessionStorage.getItem('username');
+  const isAdmin = username?.toLowerCase() === 'admin';
+  
+  // If no user is logged in, redirect to login
+  if (!username) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If this is an admin-only route and user is not admin, redirect to all tasks
+  if (allowedRoles.includes('admin') && !allowedRoles.includes('user') && !isAdmin) {
+    return <Navigate to="/dashboard/tasks" replace />;
+  }
+  
+  return children;
+};
 
 function App() {
   const [darkMode, setDarkMode] = useState(false)
-
+  
   useEffect(() => {
     // Check for user preference
     if (
@@ -28,7 +43,7 @@ function App() {
       document.documentElement.classList.remove("dark")
     }
   }, [])
-
+  
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
     if (darkMode) {
@@ -39,72 +54,56 @@ function App() {
       localStorage.theme = "dark"
     }
   }
-
+  
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Admin Routes */}
+        
+        {/* Main dashboard route */}
+        <Route path="/dashboard" element={<Navigate to="/dashboard/tasks" replace />} />
+        
+        {/* Admin only routes */}
         <Route
-          path="/admin"
+          path="/dashboard/admin"
           element={
-            <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Navigate to="/admin/dashboard" replace />
-            </AdminLayout>
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                <AdminDashboard />
+              </AdminLayout>
+            </ProtectedRoute>
           }
         />
         <Route
-          path="/admin/dashboard"
+          path="/dashboard/assign-task"
           element={
-            <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <AdminDashboard />
-            </AdminLayout>
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                <AdminAssignTask />
+              </AdminLayout>
+            </ProtectedRoute>
           }
         />
+        
+        {/* All users can access the tasks page */}
         <Route
-          path="/admin/assign-task"
+          path="/dashboard/tasks"
           element={
-            <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <AdminAssignTask />
-            </AdminLayout>
+            <ProtectedRoute allowedRoles={['admin', 'user']}>
+              <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
+                <AllTasks />
+              </AdminLayout>
+            </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/tasks"
-          element={
-            <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <AllTasks />
-            </AdminLayout>
-          }
-        />
-
-        {/* User Routes */}
-        <Route
-          path="/user"
-          element={
-            <UserLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Navigate to="/user/dashboard" replace />
-            </UserLayout>
-          }
-        />
-        <Route
-          path="/user/dashboard"
-          element={
-            <UserLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <UserDashboard />
-            </UserLayout>
-          }
-        />
-        <Route
-          path="/user/tasks"
-          element={
-            <UserLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <UserTasks />
-            </UserLayout>
-          }
-        />
+        
+        {/* For backward compatibility - redirect old paths */}
+        <Route path="/admin/*" element={<Navigate to="/dashboard/admin" replace />} />
+        <Route path="/admin/dashboard" element={<Navigate to="/dashboard/admin" replace />} />
+        <Route path="/admin/assign-task" element={<Navigate to="/dashboard/assign-task" replace />} />
+        <Route path="/admin/tasks" element={<Navigate to="/dashboard/tasks" replace />} />
+        <Route path="/user/*" element={<Navigate to="/dashboard/tasks" replace />} />
       </Routes>
     </Router>
   )

@@ -7,9 +7,7 @@ const LoginPage = () => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [masterData, setMasterData] = useState({
-    usernames: [],
-    passwords: [],
-    roles: []
+    userCredentials: {} // Changed to an object where keys are usernames and values are passwords
   })
   const [formData, setFormData] = useState({
     username: "",
@@ -17,49 +15,66 @@ const LoginPage = () => {
   })
   const [toast, setToast] = useState({ show: false, message: "", type: "" })
 
-  // Hardcoded admin credentials as a fallback
-  const ADMIN_USERNAME = 'admin'
-  const ADMIN_PASSWORD = 'admin123'
-
   // Fetch master data on component mount
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
+        setIsLoading(true)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAAyUM9m_Oe_6XAmWYIgO0ENNXgt9ox8vBWwnB4f87Lf883RGvBi4xOL9kxLyDq1dtqA/exec"
-        const response = await fetch(`${SCRIPT_URL}?action=getMasterData&sheetName=MASTER`)
+        
+        // Using POST for better data handling
+        const formData = new FormData()
+        formData.append('action', 'getMasterData')
+        formData.append('sheetName', 'MASTER')
+        
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: formData
+        })
         
         const result = await response.json()
         
         console.log("Full Master Data Response:", result)
         
         if (result.success && result.data) {
-          // Safely extract usernames, passwords, and roles
-          const usernames = Array.isArray(result.data.C) ? result.data.C.slice(1) : []
-          const passwords = Array.isArray(result.data.D) ? result.data.D.slice(1) : []
-          const roles = Array.isArray(result.data.E) ? result.data.E.slice(1) : []
-
-          // Ensure arrays have matching lengths
-          const minLength = Math.min(usernames.length, passwords.length, roles.length)
+          // Get raw data from columns
+          const rawData = result.data
           
-          const processedUsernames = usernames.slice(0, minLength).map(u => 
-            typeof u === 'string' ? u.trim().toLowerCase() : ''
-          )
-          const processedPasswords = passwords.slice(0, minLength).map(p => 
-            typeof p === 'string' ? p.trim() : ''
-          )
-          const processedRoles = roles.slice(0, minLength).map(r => 
-            typeof r === 'string' ? r.trim().toLowerCase() : ''
-          )
+          console.log("Raw Data Columns:", Object.keys(rawData))
+          console.log("Raw Data Contents:", rawData)
 
-          setMasterData({
-            usernames: processedUsernames,
-            passwords: processedPasswords,
-            roles: processedRoles
-          })
+          // Ensure we have the correct columns
+          const usernamesCol = rawData.C || []
+          const passwordsCol = rawData.D || []
+          
+          console.log("Usernames Column:", usernamesCol)
+          console.log("Passwords Column:", passwordsCol)
 
-          console.log("Processed Usernames:", processedUsernames)
-          console.log("Processed Passwords:", processedPasswords)
-          console.log("Processed Roles:", processedRoles)
+          // Directly map usernames to passwords in an object
+          const userCredentials = {}
+          
+          // Process rows
+          for (let i = 1; i < usernamesCol.length; i++) {
+            const username = String(usernamesCol[i]).trim().toLowerCase()
+            const password = passwordsCol[i]
+            
+            console.log(`Processing row ${i}:`, { username, password })
+            
+            // Only add credentials if both username and password are valid
+            if (
+              username && 
+              password !== undefined && 
+              password !== null && 
+              String(password).trim() !== ''
+            ) {
+              userCredentials[username] = String(password).trim()
+            }
+          }
+
+          setMasterData({ userCredentials })
+          
+          console.log("Processed User Credentials:", userCredentials)
+          console.log("Admin Credentials:", userCredentials['admin'])
         } else {
           console.error("Invalid master data response:", result)
           showToast("Failed to load master data", "error")
@@ -67,6 +82,8 @@ const LoginPage = () => {
       } catch (error) {
         console.error("Complete Error Fetching Master Data:", error)
         showToast(`Network error: ${error.message}`, "error")
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -83,63 +100,50 @@ const LoginPage = () => {
     setIsLoading(true)
 
     try {
-      // Trim and convert to lowercase for case-insensitive comparison
       const trimmedUsername = formData.username.trim().toLowerCase()
       const trimmedPassword = formData.password.trim()
 
       console.log("Login Attempt Details:")
       console.log("Entered Username:", trimmedUsername)
       console.log("Entered Password:", trimmedPassword)
-      console.log("Available Usernames:", masterData.usernames)
-      console.log("Available Passwords:", masterData.passwords)
-
-      // Special admin login
-      if (
-        trimmedUsername === ADMIN_USERNAME.toLowerCase() && 
-        trimmedPassword === ADMIN_PASSWORD
-      ) {
-        sessionStorage.setItem('username', ADMIN_USERNAME)
-        navigate("/admin/dashboard")
-        showToast(`Login successful. Welcome, ${ADMIN_USERNAME}!`, "success")
-        return
-      }
-
-      // Find the index of the username in the master data
-      const userIndex = masterData.usernames.findIndex(
-        username => username === trimmedUsername
-      )
-
-      console.log("User Index Found:", userIndex)
-
-      // Enhanced null and undefined checks
-      const matchedPassword = userIndex !== -1 ? 
-        (masterData.passwords[userIndex] || '').trim() : 
-        ''
-
-      // Check if username exists and password matches
-      if (
-        userIndex !== -1 && 
-        matchedPassword === trimmedPassword
-      ) {
-        // Store user info in sessionStorage
-        sessionStorage.setItem('username', formData.username)
+      console.log("Available Credentials:", Object.keys(masterData.userCredentials))
+      
+      // Check if the username exists in our credentials map
+      if (trimmedUsername in masterData.userCredentials) {
+        const correctPassword = masterData.userCredentials[trimmedUsername]
         
-        // Determine route based on role (if roles are available)
-        const userRole = (masterData.roles[userIndex] || '').trim().toLowerCase()
-
-        console.log("User Role:", userRole)
-
-        // Navigate to user dashboard
-        navigate("/user/dashboard")
+        console.log("Found user in credentials map")
+        console.log("Expected Password:", correctPassword)
+        console.log("Password Match:", correctPassword === trimmedPassword)
         
-        showToast(`Login successful. Welcome, ${formData.username}!`, "success")
-      } else {
-        console.error("Login Failed", {
-          usernameMatch: userIndex !== -1,
-          passwordMatch: userIndex !== -1 ? matchedPassword === trimmedPassword : 'N/A'
-        })
-        showToast("Invalid username or password. Please try again.", "error")
+        // Check if password matches
+        if (correctPassword === trimmedPassword) {
+          // Store user info in sessionStorage
+          sessionStorage.setItem('username', trimmedUsername)
+          
+          // Determine if user is admin based on username
+          const isAdmin = trimmedUsername === 'admin'
+          sessionStorage.setItem('role', isAdmin ? 'admin' : 'user')
+          
+          // Navigate based on role
+          if (isAdmin) {
+            navigate("/dashboard/admin")
+          } else {
+            navigate("/dashboard/tasks")
+          }
+          
+          showToast(`Login successful. Welcome, ${trimmedUsername}!`, "success")
+          return
+        }
       }
+      
+      // If we got here, login failed
+      console.error("Login Failed", {
+        usernameExists: trimmedUsername in masterData.userCredentials,
+        passwordMatch: (trimmedUsername in masterData.userCredentials) ? 
+          masterData.userCredentials[trimmedUsername] === trimmedPassword : 'N/A'
+      })
+      showToast("Invalid username or password. Please try again.", "error")
     } catch (error) {
       console.error("Complete Login Error:", error)
       showToast(`Login failed: ${error.message}. Please try again.`, "error")
@@ -155,7 +159,6 @@ const LoginPage = () => {
     }, 5000) // Increased toast duration for better readability
   }
 
-  // Rest of the component remains the same as previous implementation
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 p-4">
       <div className="w-full max-w-md shadow-lg border border-blue-200 dark:border-purple-800 rounded-lg bg-white dark:bg-gray-800">

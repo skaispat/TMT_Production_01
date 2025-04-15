@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from "react"
 
 const AllTasks = () => {
@@ -20,6 +21,7 @@ const AllTasks = () => {
   const [editedTasks, setEditedTasks] = useState({})
   const [username, setUsername] = useState("")
   const [isAdmin, setIsAdmin] = useState(false)
+  const [selectedColumnValues, setSelectedColumnValues] = useState({})
   
   // Pagination state
   const [pageSize, setPageSize] = useState(10)
@@ -257,13 +259,33 @@ const AllTasks = () => {
   // Toggle task selection
   const toggleTaskSelection = (taskId) => {
     setSelectedTasks((prev) => {
-      if (prev.includes(taskId)) {
-        return prev.filter((id) => id !== taskId)
-      } else {
-        return [...prev, taskId]
-      }
-    })
+      const newSelectedTasks = prev.includes(taskId) 
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId];
+
+      // Reset or initialize column O value when task is selected/deselected
+      setSelectedColumnValues(prevValues => {
+        const newValues = {...prevValues};
+        if (newSelectedTasks.includes(taskId)) {
+          newValues[taskId] = ''; // Initialize as empty when selected
+        } else {
+          delete newValues[taskId]; // Remove when deselected
+        }
+        return newValues;
+      });
+
+      return newSelectedTasks;
+    });
   }
+
+  // Handle column O input change
+  const handleColumnOChange = (taskId, value) => {
+    setSelectedColumnValues(prev => ({
+      ...prev,
+      [taskId]: value
+    }));
+  }
+
 
   // Toggle all tasks selection
   const toggleAllTasks = () => {
@@ -558,6 +580,10 @@ const AllTasks = () => {
                     {header.label}
                   </th>
                 ))}
+                {/* New column O */}
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Column O
+                </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Upload Image
                 </th>
@@ -581,21 +607,27 @@ const AllTasks = () => {
                     </td>
                     {tableHeaders.map((header) => (
                       <td key={header.id} className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {selectedTasks.includes(task._id) ? (
-                          <input
-                            type="text"
-                            value={editedTasks[task._id][header.id] || ''}
-                            onChange={(e) => handleTaskEdit(task._id, header.id, e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        ) : (
-                          // Check if the field might contain a date and format it accordingly
-                          header.label.toLowerCase().includes('date') 
-                            ? formatDate(task[header.id]) 
-                            : task[header.id] || '—'
-                        )}
+                        {/* Always show original value, regardless of selection */}
+                        {header.label.toLowerCase().includes('date') 
+                          ? formatDate(task[header.id]) 
+                          : task[header.id] || '—'}
                       </td>
                     ))}
+                    {/* Column O input */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      {selectedTasks.includes(task._id) ? (
+                        <input
+                          type="text"
+                          value={selectedColumnValues[task._id] || ''}
+                          onChange={(e) => handleColumnOChange(task._id, e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Enter value for Column O"
+                        />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    {/* Upload Image section */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center space-x-2">
                         <input
@@ -604,10 +636,15 @@ const AllTasks = () => {
                           onChange={(e) => handleFileSelect(task._id, e)}
                           className="hidden"
                           accept="image/*"
+                          disabled={!selectedTasks.includes(task._id)}
                         />
                         <label
                           htmlFor={`file-${task._id}`}
-                          className="px-3 py-2 bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-600 transition flex items-center justify-center"
+                          className={`px-3 py-2 rounded cursor-pointer transition flex items-center justify-center ${
+                            selectedTasks.includes(task._id)
+                              ? "bg-blue-500 text-white hover:bg-blue-600"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          }`}
                         >
                           Upload Image
                         </label>
@@ -624,7 +661,7 @@ const AllTasks = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={tableHeaders.length + 2} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={tableHeaders.length + 3} className="px-6 py-4 text-center text-gray-500">
                     {searchQuery ? "No tasks found matching the search" : "No tasks found"}
                   </td>
                 </tr>

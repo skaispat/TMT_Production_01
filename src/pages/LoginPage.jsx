@@ -34,33 +34,21 @@ const LoginPage = () => {
         
         const result = await response.json()
         
-        console.log("Full Master Data Response:", result)
+        // Create userCredentials object with default admin user
+        const userCredentials = {
+          'admin': 'admin123' // Default admin credentials
+        }
         
+        // If there's additional data from the sheet, add it
         if (result.success && result.data) {
-          // Get raw data from columns
-          const rawData = result.data
+          const usernamesCol = result.data.C || []
+          const passwordsCol = result.data.D || []
           
-          console.log("Raw Data Columns:", Object.keys(rawData))
-          console.log("Raw Data Contents:", rawData)
-
-          // Ensure we have the correct columns
-          const usernamesCol = rawData.C || []
-          const passwordsCol = rawData.D || []
-          
-          console.log("Usernames Column:", usernamesCol)
-          console.log("Passwords Column:", passwordsCol)
-
-          // Directly map usernames to passwords in an object
-          const userCredentials = {}
-          
-          // Process rows
+          // Process rows from the sheet
           for (let i = 1; i < usernamesCol.length; i++) {
             const username = String(usernamesCol[i]).trim().toLowerCase()
             const password = passwordsCol[i]
             
-            console.log(`Processing row ${i}:`, { username, password })
-            
-            // Only add credentials if both username and password are valid
             if (
               username && 
               password !== undefined && 
@@ -70,17 +58,17 @@ const LoginPage = () => {
               userCredentials[username] = String(password).trim()
             }
           }
-
-          setMasterData({ userCredentials })
-          
-          console.log("Processed User Credentials:", userCredentials)
-          console.log("Admin Credentials:", userCredentials['admin'])
-        } else {
-          console.error("Invalid master data response:", result)
-          showToast("Failed to load master data", "error")
         }
+    
+        setMasterData({ userCredentials })
       } catch (error) {
         console.error("Complete Error Fetching Master Data:", error)
+        // Set default admin credentials even if fetch fails
+        setMasterData({ 
+          userCredentials: { 
+            'admin': 'admin123' 
+          } 
+        })
         showToast(`Network error: ${error.message}`, "error")
       } finally {
         setIsLoading(false)

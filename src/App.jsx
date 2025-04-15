@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage"
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminAssignTask from "./pages/admin/AssignTask"
 import AllTasks from "./pages/admin/AllTasks"
+import DataPage from "./pages/admin/DataPage"
 import AdminLayout from "./components/layout/AdminLayout"
 import "./index.css"
 
@@ -58,51 +59,66 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Root redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />
+        
+        {/* Login route */}
         <Route path="/login" element={<LoginPage />} />
         
-        {/* Main dashboard route */}
+        {/* Dashboard redirect */}
         <Route path="/dashboard" element={<Navigate to="/dashboard/tasks" replace />} />
         
-        {/* Admin only routes */}
-        <Route
-          path="/dashboard/admin"
+        {/* Admin-only routes */}
+        <Route 
+          path="/dashboard/admin" 
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
                 <AdminDashboard />
               </AdminLayout>
             </ProtectedRoute>
-          }
+          } 
         />
-        <Route
-          path="/dashboard/assign-task"
+        
+        <Route 
+          path="/dashboard/assign-task" 
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
                 <AdminAssignTask />
               </AdminLayout>
             </ProtectedRoute>
-          }
+          } 
         />
         
-        {/* All users can access the tasks page */}
-        <Route
-          path="/dashboard/tasks"
+        {/* Data routes */}
+        <Route 
+          path="/dashboard/data/:category" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DataPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* All users can access tasks page */}
+        <Route 
+          path="/dashboard/tasks" 
           element={
             <ProtectedRoute allowedRoles={['admin', 'user']}>
               <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
                 <AllTasks />
               </AdminLayout>
             </ProtectedRoute>
-          }
+          } 
         />
         
-        {/* For backward compatibility - redirect old paths */}
+        {/* Backward compatibility redirects */}
         <Route path="/admin/*" element={<Navigate to="/dashboard/admin" replace />} />
         <Route path="/admin/dashboard" element={<Navigate to="/dashboard/admin" replace />} />
         <Route path="/admin/assign-task" element={<Navigate to="/dashboard/assign-task" replace />} />
         <Route path="/admin/tasks" element={<Navigate to="/dashboard/tasks" replace />} />
+        <Route path="/admin/data/:category" element={<Navigate to="/dashboard/data/:category" replace />} />
         <Route path="/user/*" element={<Navigate to="/dashboard/tasks" replace />} />
       </Routes>
     </Router>

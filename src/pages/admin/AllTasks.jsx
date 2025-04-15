@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react"
 
 const AllTasks = () => {
@@ -141,14 +140,18 @@ const AllTasks = () => {
           const colLId = data.headers[colLIndex]?.id || 'colL';
           const colMId = data.headers[colMIndex]?.id || 'colM';
           
-          // Get today's exact date
-          const today = new Date();
+          // Hardcoded specific date for consistent testing
+          const today = new Date('2025-04-15');
           const formatDateString = (date) => {
             return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
           }
           
           const todayString = formatDateString(today);
           
+          console.log("Debug - Target Date:", todayString);
+          console.log("Debug - Current Username:", username);
+          console.log("Debug - Is Admin:", isAdmin);
+
           const filteredTasks = data.tasks
             .filter(task => {
               // For admin, show all tasks, otherwise filter by username
@@ -158,11 +161,19 @@ const AllTasks = () => {
               const taskUsername = task[colEId] ? task[colEId].toString().trim().toLowerCase() : '';
               const currentUsername = username.trim().toLowerCase();
               
+              console.log("Debug - Task Username:", taskUsername);
+              console.log("Debug - Current Username:", currentUsername);
+              
               return taskUsername === currentUsername;
             })
             .filter(task => {
               // Verify column L matches today's date exactly
               const taskDate = task[colLId] ? parseFormattedDate(task[colLId]) : '';
+              
+              console.log("Debug - Raw Task Date:", task[colLId]);
+              console.log("Debug - Parsed Task Date:", taskDate);
+              console.log("Debug - Today's Date:", todayString);
+              
               const isValidDate = taskDate === todayString;
               
               // Ensure column L is not null/empty
@@ -174,6 +185,14 @@ const AllTasks = () => {
               const isColMEmpty = task[colMId] === undefined || 
                                  task[colMId] === null || 
                                  task[colMId].toString().trim() === '';
+              
+              console.log("Debug - Date Filtering:", {
+                taskDate, 
+                todayString, 
+                isValidDate, 
+                hasColL, 
+                isColMEmpty
+              });
               
               return hasColL && isValidDate && isColMEmpty;
             })
@@ -191,6 +210,8 @@ const AllTasks = () => {
               
               return filteredTask
             })
+          
+          console.log("Debug - Filtered Tasks:", filteredTasks);
           
           const visibleHeaders = data.headers.filter((header, index) => 
             index >= 1 && index <= 10

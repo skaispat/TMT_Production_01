@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LoginPage from "./pages/LoginPage"
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminAssignTask from "./pages/admin/AssignTask"
-import AllTasks from "./pages/admin/AllTasks"
+// import AllTasks from "./pages/admin/AllTasks"
 import DataPage from "./pages/admin/DataPage"
 import AdminDataPage from "./pages/admin/admin-data-page"
 import "./index.css"
@@ -29,32 +29,32 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 }
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false)
+  // const [darkMode, setDarkMode] = useState(false)
 
-  useEffect(() => {
-    // Check for user preference
-    if (
-      localStorage.theme === "dark" ||
-      (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-      setDarkMode(true)
-      document.documentElement.classList.add("dark")
-    } else {
-      setDarkMode(false)
-      document.documentElement.classList.remove("dark")
-    }
-  }, [])
+  // useEffect(() => {
+  //   // Check for user preference
+  //   if (
+  //     localStorage.theme === "dark" ||
+  //     (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  //   ) {
+  //     setDarkMode(true)
+  //     document.documentElement.classList.add("dark")
+  //   } else {
+  //     setDarkMode(false)
+  //     document.documentElement.classList.remove("dark")
+  //   }
+  // }, [])
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode)
-    if (darkMode) {
-      document.documentElement.classList.remove("dark")
-      localStorage.theme = "light"
-    } else {
-      document.documentElement.classList.add("dark")
-      localStorage.theme = "dark"
-    }
-  }
+  // const toggleDarkMode = () => {
+  //   setDarkMode(!darkMode)
+  //   if (darkMode) {
+  //     document.documentElement.classList.remove("dark")
+  //     localStorage.theme = "light"
+  //   } else {
+  //     document.documentElement.classList.add("dark")
+  //     localStorage.theme = "dark"
+  //   }
+  // }
 
   return (
     <Router>
@@ -73,7 +73,7 @@ function App() {
           path="/dashboard/admin"
           element={
             <ProtectedRoute>
-              <AdminDashboard darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
@@ -83,7 +83,7 @@ function App() {
           path="/dashboard/assign-task"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminAssignTask darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+              <AdminAssignTask />
             </ProtectedRoute>
           }
         />

@@ -485,7 +485,7 @@ const fetchSheetData = async () => {
                           ) : (
                             <label className="flex items-center cursor-pointer text-purple-600 hover:text-purple-800">
                               <Upload className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Upload Receipt Image for Column P</span>
+                              <span className="text-xs">Upload Receipt Image</span>
                               <input
                                 type="file" 
                                 className="hidden"

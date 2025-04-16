@@ -390,23 +390,49 @@ export default function AdminDashboard() {
   }, [selectedMasterOption])
   
   // Filter tasks based on the filter criteria
-  const filteredTasks = departmentData.allTasks.filter((task) => {
-    // Filter by status
-    if (filterStatus !== "all" && task.status !== filterStatus) return false
+// Updated filteredTasks function with type checking
+// Improved filteredTasks function with better type checking and debugging
+const filteredTasks = departmentData.allTasks.filter((task) => {
+  // For debugging - uncomment these lines to see what's happening
+  // console.log("Filtering task:", task);
+  // console.log("Title type:", typeof task.title);
+  
+  // Filter by status
+  if (filterStatus !== "all" && task.status !== filterStatus) return false;
 
-    // Filter by staff
-    if (filterStaff !== "all" && task.assignedTo !== filterStaff) return false
+  // Filter by staff
+  if (filterStaff !== "all" && task.assignedTo !== filterStaff) return false;
 
-    // Filter by search query
-    if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
+  // Filter by search query with more robust checking
+  if (searchQuery && searchQuery.trim() !== "") {
+    // Convert search query to lowercase for case-insensitive comparison
+    const query = searchQuery.toLowerCase().trim();
+    
+    // Check title (safely)
+    if (typeof task.title === 'string' && task.title.toLowerCase().includes(query)) {
+      return true;
     }
+    
+    // Also check task ID if it's a string or number
+    if ((typeof task.id === 'string' && task.id.toLowerCase().includes(query)) ||
+        (typeof task.id === 'number' && task.id.toString().includes(query))) {
+      return true;
+    }
+    
+    // Also check assignedTo if it's a string
+    if (typeof task.assignedTo === 'string' && task.assignedTo.toLowerCase().includes(query)) {
+      return true;
+    }
+    
+    // No match found for this search query
+    return false;
+  }
 
-    return true
-  })
+  // If we get here, all filters passed
+  return true;
+});
 
-  // Filter tasks based on the tab view
-// Filter tasks based on the tab view
+// Also ensure getTasksByView is working correctly with proper debugging
 const getTasksByView = (view) => {
   // Get today's date and tomorrow's date for filtering
   const today = new Date();
@@ -415,10 +441,18 @@ const getTasksByView = (view) => {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   
-  return filteredTasks.filter((task) => {
-    if (task.status === "completed") return false; // Don't show completed tasks in any view
+  // For debugging - uncomment this to see filtered tasks count before view filtering
+  // console.log(`Filtered tasks before ${view} view: ${filteredTasks.length}`);
+  
+  const viewFilteredTasks = filteredTasks.filter((task) => {
+    // Skip tasks without status or with completed status in all views
+    if (!task.status || task.status === "completed") return false;
     
     const dueDate = parseDateFromDDMMYYYY(task.dueDate);
+    
+    // For debugging - uncomment these lines
+    // console.log(`Task: ${task.title}, Due date: ${task.dueDate}, Parsed: ${dueDate}`);
+    
     if (!dueDate) return false; // Skip tasks without valid due dates
     
     switch (view) {
@@ -443,6 +477,11 @@ const getTasksByView = (view) => {
         return true;
     }
   });
+  
+  // For debugging - uncomment this to see final filtered tasks count
+  // console.log(`Final ${view} filtered tasks: ${viewFilteredTasks.length}`);
+  
+  return viewFilteredTasks;
 };
 
   const getStatusColor = (status) => {
@@ -701,7 +740,7 @@ const getTasksByView = (view) => {
                   className="w-full rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
               </div>
-              <div className="space-y-2 md:w-[180px]">
+              {/* <div className="space-y-2 md:w-[180px]">
                 <label htmlFor="status-filter" className="flex items-center text-purple-700">
                   <Filter className="h-4 w-4 mr-2" />
                   Filter by Status
@@ -717,7 +756,7 @@ const getTasksByView = (view) => {
                   <option value="completed">Completed</option>
                   <option value="overdue">Overdue</option>
                 </select>
-              </div>
+              </div> */}
               <div className="space-y-2 md:w-[180px]">
                 <label htmlFor="staff-filter" className="flex items-center text-purple-700">
                   <Filter className="h-4 w-4 mr-2" />

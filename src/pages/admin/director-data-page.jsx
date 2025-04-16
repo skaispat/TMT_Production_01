@@ -417,11 +417,11 @@ const parseDateFromDDMMYYYY = (dateStr) => {
                         {header.label}
                       </th>
                     ))}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-yellow-50">
-                      Column O (Comments)
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-yellow-50">
+                      Remarks
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50">
-                      Column P (Receipt)
+                      Upload Image
                     </th>
                   </tr>
                 </thead>
@@ -454,7 +454,7 @@ const parseDateFromDDMMYYYY = (dateStr) => {
                             disabled={!selectedItems.includes(account._id)}
                             value={additionalData[account._id] || ""}
                             onChange={(e) => setAdditionalData(prev => ({...prev, [account._id]: e.target.value}))}
-                            className="border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            className="border border-gray-300 rounded-md px-20 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Enter comments for Column O"
                           />
                         </td>
@@ -485,7 +485,7 @@ const parseDateFromDDMMYYYY = (dateStr) => {
                           ) : (
                             <label className="flex items-center cursor-pointer text-purple-600 hover:text-purple-800">
                               <Upload className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Upload Receipt Image for Column P</span>
+                              <span className="text-xs">Upload Receipt Image</span>
                               <input
                                 type="file" 
                                 className="hidden"

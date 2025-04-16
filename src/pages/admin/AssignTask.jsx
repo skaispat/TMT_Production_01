@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { BellRing, FileCheck, Calendar } from "lucide-react"
+import AdminLayout from "../../components/layout/AdminLayout"
 
 // Calendar Component (defined outside)
 const CalendarComponent = ({ date, onChange, onClose }) => {
@@ -297,6 +298,66 @@ const formatDateToDDMMYYYY = (date) => {
   return `${day}/${month}/${year}`
 }
 
+// Update the generateTasks function to properly format the date as a string
+const generateTasks = () => {
+  if (!date || !formData.doer || !formData.title || !formData.frequency) {
+    alert("Please fill in all required fields.")
+    return
+  }
+
+  const tasks = []
+  const startDate = new Date(date)
+  const endDate = addYears(startDate, 2)
+  let currentDate = new Date(startDate)
+
+  while (currentDate <= endDate) {
+    // Format the date immediately when creating the task
+    tasks.push({
+      title: formData.title,
+      description: formData.description,
+      department: formData.department,
+      givenBy: formData.givenBy,
+      doer: formData.doer,
+      dueDate: formatDateToDDMMYYYY(currentDate), // Format as string right here
+      status: "pending",
+      frequency: formData.frequency,
+      enableReminders: formData.enableReminders,
+      requireAttachment: formData.requireAttachment,
+    })
+
+    // Date increment based on frequency
+    switch (formData.frequency) {
+      case "one-time":
+        currentDate = new Date(endDate.getTime() + 86400000)
+        break
+      case "daily":
+        currentDate = addDays(currentDate, 1)
+        break
+      case "weekly":
+        currentDate = addDays(currentDate, 7)
+        break
+      case "fortnightly":
+        currentDate = addDays(currentDate, 14)
+        break
+      case "monthly":
+        currentDate = addMonths(currentDate, 1)
+        break
+      case "quarterly":
+        currentDate = addMonths(currentDate, 3)
+        break
+      case "yearly":
+        currentDate = addYears(currentDate, 1)
+        break
+      default:
+        currentDate = addDays(currentDate, 1)
+    }
+  }
+
+  setGeneratedTasks(tasks)
+  setAccordionOpen(true)
+}
+
+// Update handleSubmit function to avoid re-formatting an already formatted date
 const handleSubmit = async (e) => {
   e.preventDefault()
   setIsSubmitting(true)
@@ -324,11 +385,11 @@ const handleSubmit = async (e) => {
       doer: task.doer,
       title: task.title,
       description: task.description,
-      dueDate: formatDateToDDMMYYYY(new Date(task.dueDate)), // Format task due date
+      dueDate: task.dueDate, // Already formatted, don't format again
       frequency: task.frequency,
       enableReminders: task.enableReminders ? 'Yes' : 'No',
       requireAttachment: task.requireAttachment ? 'Yes' : 'No',
-      currentDate: currentDate
+      // currentDate: currentDate
     }))
 
     // Submit all tasks in one request
@@ -368,67 +429,10 @@ const handleSubmit = async (e) => {
   }
 }
 
-// Also update the generateTasks function to handle task IDs
-const generateTasks = () => {
-  if (!date || !formData.doer || !formData.title || !formData.frequency) {
-    alert("Please fill in all required fields.")
-    return
-  }
-
-  const tasks = []
-  const startDate = new Date(date)
-  const endDate = addYears(startDate, 2)
-  let currentDate = new Date(startDate)
-
-  while (currentDate <= endDate) {
-    tasks.push({
-      title: formData.title,
-      description: formData.description,
-      department: formData.department,
-      givenBy: formData.givenBy,
-      doer: formData.doer,
-      dueDate: formatDateToDDMMYYYY(currentDate), // Use the new date format
-      status: "pending",
-      frequency: formData.frequency,
-      enableReminders: formData.enableReminders,
-      requireAttachment: formData.requireAttachment,
-    })
-
-    // Date increment based on frequency
-    switch (formData.frequency) {
-      case "one-time":
-        currentDate = new Date(endDate.getTime() + 86400000)
-        break
-      case "daily":
-        currentDate = addDays(currentDate, 1)
-        break
-      case "weekly":
-        currentDate = addDays(currentDate, 7)
-        break
-      case "fortnightly":
-        currentDate = addDays(currentDate, 14)
-        break
-      case "monthly":
-        currentDate = addMonths(currentDate, 1)
-        break
-      case "quarterly":
-        currentDate = addMonths(currentDate, 3)
-        break
-      case "yearly":
-        currentDate = addYears(currentDate, 1)
-        break
-      default:
-        currentDate = addDays(currentDate, 1)
-    }
-  }
-
-  setGeneratedTasks(tasks)
-  setAccordionOpen(true)
-}
-
   return (
+    <AdminLayout>
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold tracking-tight mb-6 text-purple-700">Assign New Task</h1>
+      <h1 className="text-2xl font-bold tracking-tight mb-6 text-purple-500">Assign New Task</h1>
       <div className="rounded-lg border border-purple-200 bg-white shadow-md overflow-hidden">
         <form onSubmit={handleSubmit}>
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-purple-100">
@@ -728,5 +732,6 @@ const generateTasks = () => {
       {/* Calendar Component Definition */}
       
     </div>
+  </AdminLayout>
   )
 }

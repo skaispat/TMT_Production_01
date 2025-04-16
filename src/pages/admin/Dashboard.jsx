@@ -1,1111 +1,6 @@
-// "use client"
-
-// import { useState, useEffect } from "react"
-// import {
-//   BarChart,
-//   Bar,
-//   PieChart,
-//   Pie,
-//   Cell,
-//   XAxis,
-//   YAxis,
-//   CartesianGrid,
-//   Tooltip,
-//   Legend,
-//   ResponsiveContainer,
-// } from "recharts"
-
-// export default function TaskDashboard() {
-//   // Google Sheets configuration - same as in your AllTasks component
-//   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAAyUM9m_Oe_6XAmWYIgO0ENNXgt9ox8vBWwnB4f87Lf883RGvBi4xOL9kxLyDq1dtqA/exec"
-//   const SHEET_NAME = "DATA"
-//   const SHEET_ID = "1jOBkMxcHrusTlAV9l21JN-B-5QWq1dDyj3-0kxbK6ik" // Your specific sheet ID
-//   const MASTER_SHEET = "MASTER" // Sheet containing staff info
-
-//   // States
-//   const [timeframe, setTimeframe] = useState("weekly")
-//   const [taskView, setTaskView] = useState("recent")
-//   const [filterStatus, setFilterStatus] = useState("all")
-//   const [filterStaff, setFilterStaff] = useState("all")
-//   const [searchQuery, setSearchQuery] = useState("")
-//   const [activeTab, setActiveTab] = useState("overview")
-  
-//   // Data states
-//   const [allTasks, setAllTasks] = useState([])
-//   const [staffMembers, setStaffMembers] = useState([])
-//   const [activeStaffCount, setActiveStaffCount] = useState(0)
-//   const [isLoading, setIsLoading] = useState(true)
-//   const [error, setError] = useState(null)
-  
-//   // Derived task counts
-//   const [taskCounts, setTaskCounts] = useState({
-//     total: 0,
-//     completed: 0,
-//     pending: 0,
-//     overdue: 0
-//   })
-  
-//   // Chart data
-//   const [monthlyData, setMonthlyData] = useState([])
-//   const [pieData, setPieData] = useState([])
-  
-//   // Helper function to parse and format dates in the specific format "14/04/2025 12:48:29"
-//   const parseDate = (dateString) => {
-//     if (!dateString) return null;
-    
-//     try {
-//       // Try to handle the format "14/04/2025 12:48:29"
-//       if (dateString.includes('/')) {
-//         const [datePart, timePart] = dateString.split(' ');
-//         const [day, month, year] = datePart.split('/');
-        
-//         // Create date object (month is 0-indexed in JS Date)
-//         return new Date(year, month - 1, day);
-//       }
-      
-//       // Fallback to standard date parsing
-//       return new Date(dateString);
-//     } catch (e) {
-//       console.error("Error parsing date:", dateString, e);
-//       return null;
-//     }
-//   }
-  
-//   // Helper to check if a date matches today's date (only comparing day, month, year)
-//   const isToday = (dateStr) => {
-//     if (!dateStr) return false;
-    
-//     const date = parseDate(dateStr);
-//     if (!date) return false;
-    
-//     const today = new Date();
-//     return date.getDate() === today.getDate() && 
-//            date.getMonth() === today.getMonth() && 
-//            date.getFullYear() === today.getFullYear();
-//   }
-  
-//   // Helper to check if a date matches tomorrow's date (only comparing day, month, year)
-//   const isTomorrow = (dateStr) => {
-//     if (!dateStr) return false;
-    
-//     const date = parseDate(dateStr);
-//     if (!date) return false;
-    
-//     const tomorrow = new Date();
-//     tomorrow.setDate(tomorrow.getDate() + 1);
-    
-//     return date.getDate() === tomorrow.getDate() && 
-//            date.getMonth() === tomorrow.getMonth() && 
-//            date.getFullYear() === tomorrow.getFullYear();
-//   }
-  
-//   // Helper to check if a date is before 2 months from today
-//   const isOverdue = (dateStr) => {
-//     if (!dateStr) return false;
-    
-//     const date = parseDate(dateStr);
-//     if (!date) return false;
-    
-//     const twoMonthsAgo = new Date();
-//     twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-    
-//     return date < twoMonthsAgo;
-//   }
-
-//   // Fetch tasks from Google Sheets
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         setIsLoading(true);
-        
-//         // Create form data for the tasks request
-//         const formData = new FormData();
-//         formData.append('action', 'fetchTasks');
-//         formData.append('sheetId', SHEET_ID);
-//         formData.append('sheetName', SHEET_NAME);
-        
-//         const response = await fetch(SCRIPT_URL, {
-//           method: 'POST',
-//           body: formData
-//         });
-        
-//         const data = await response.json();
-        
-//         if (data && data.success) {
-//           console.log("Task data fetched:", data);
-//           setAllTasks(data.tasks);
-          
-//           // Process task counts based on columns L and M
-//           const colLIndex = 11; // 0-indexed, L is 12th column (0-11)
-//           const colMIndex = 12; // 0-indexed, M is 13th column (0-12)
-//           // Column E for staff names (4th column, 0-indexed)
-//           const colEIndex = 4;
-          
-//           // Get column IDs
-//           const colLId = data.headers[colLIndex]?.id || 'colL';
-//           const colMId = data.headers[colMIndex]?.id || 'colM';
-//           const colEId = data.headers[colEIndex]?.id || 'colE';
-          
-//           console.log("Column IDs:", {L: colLId, M: colMId, E: colEId});
-          
-//           // Count tasks
-//           const total = data.tasks.length;
-//           const completed = data.tasks.filter(task => 
-//             task[colLId] !== undefined && 
-//             task[colLId] !== null && 
-//             task[colLId].toString().trim() !== '' &&
-//             task[colMId] !== undefined && 
-//             task[colMId] !== null && 
-//             task[colMId].toString().trim() !== ''
-//           ).length;
-          
-//           const pending = data.tasks.filter(task => 
-//             task[colLId] !== undefined && 
-//             task[colLId] !== null && 
-//             task[colLId].toString().trim() !== '' &&
-//             (task[colMId] === undefined || 
-//              task[colMId] === null || 
-//              task[colMId].toString().trim() === '') &&
-//             !isOverdue(task[colLId])
-//           ).length;
-          
-//           const overdue = data.tasks.filter(task => 
-//             task[colLId] !== undefined && 
-//             task[colLId] !== null && 
-//             task[colLId].toString().trim() !== '' &&
-//             (task[colMId] === undefined || 
-//              task[colMId] === null || 
-//              task[colMId].toString().trim() === '') &&
-//             isOverdue(task[colLId])
-//           ).length;
-          
-//           setTaskCounts({
-//             total,
-//             completed,
-//             pending,
-//             overdue
-//           });
-          
-//           // Get unique staff names from column E
-//           const uniqueStaffNames = new Set();
-//           data.tasks.forEach(task => {
-//             if (task[colEId] && task[colEId].toString().trim() !== '') {
-//               uniqueStaffNames.add(task[colEId].toString().trim());
-//             }
-//           });
-          
-//           // Generate staff member data based on column E
-//           const staffData = Array.from(uniqueStaffNames).map((name, index) => {
-//             // Count tasks for this staff member
-//             const staffTasks = data.tasks.filter(task => 
-//               task[colEId] && task[colEId].toString().trim() === name
-//             );
-            
-//             const totalTasks = staffTasks.length;
-            
-//             // Count completed tasks (column L and M not null)
-//             const completedTasks = staffTasks.filter(task => 
-//               task[colLId] !== undefined && 
-//               task[colLId] !== null && 
-//               task[colLId].toString().trim() !== '' &&
-//               task[colMId] !== undefined && 
-//               task[colMId] !== null && 
-//               task[colMId].toString().trim() !== ''
-//             ).length;
-            
-//             const pendingTasks = totalTasks - completedTasks;
-//             const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-            
-//             return {
-//               id: index + 1,
-//               name: name,
-//               email: `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`, // Placeholder email
-//               totalTasks: totalTasks,
-//               completedTasks: completedTasks,
-//               pendingTasks: pendingTasks,
-//               progress: progress
-//             };
-//           });
-          
-//           setStaffMembers(staffData);
-          
-//           // Prepare monthly data for charts
-//           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-//           const currentMonth = new Date().getMonth();
-//           const lastSixMonths = [];
-          
-//           for (let i = 6; i >= 0; i--) {
-//             const monthIndex = (currentMonth - i + 12) % 12;
-//             lastSixMonths.push(monthNames[monthIndex]);
-//           }
-          
-//           // Create chart data based on the task completion status per month
-//           const chartData = lastSixMonths.map(monthName => {
-//             const monthIndex = monthNames.indexOf(monthName);
-            
-//             // Count tasks for this month
-//             const monthTasks = data.tasks.filter(task => {
-//               if (!task[colLId]) return false;
-              
-//               const taskDate = parseDate(task[colLId]);
-//               return taskDate && taskDate.getMonth() === monthIndex;
-//             });
-            
-//             const monthCompleted = monthTasks.filter(task => 
-//               task[colMId] !== undefined && 
-//               task[colMId] !== null && 
-//               task[colMId].toString().trim() !== ''
-//             ).length;
-            
-//             const monthPending = monthTasks.filter(task => 
-//               task[colMId] === undefined || 
-//               task[colMId] === null || 
-//               task[colMId].toString().trim() === ''
-//             ).length;
-            
-//             return {
-//               name: monthName,
-//               completed: monthCompleted,
-//               pending: monthPending
-//             };
-//           });
-          
-//           setMonthlyData(chartData);
-          
-//           // Create pie chart data
-//           setPieData([
-//             { name: "Completed", value: completed, color: "#4ade80" },
-//             { name: "Pending", value: pending, color: "#facc15" },
-//             { name: "Overdue", value: overdue, color: "#fb7185" }
-//           ]);
-          
-//           // Fetch staff data from MASTER sheet
-//           fetchStaffData();
-//         } else {
-//           console.error("Error fetching tasks:", data?.error || "Unknown error");
-//           setError(data?.error || "Failed to load tasks");
-//         }
-//       } catch (error) {
-//         console.error("Error fetching tasks:", error);
-//         setError("Network error or failed to fetch tasks");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-    
-//    // Modified fetchStaffData function that uses the existing 'fetchTasks' action
-// const fetchStaffData = async () => {
-//   try {
-//     // Use the existing 'fetchTasks' action but specify MASTER sheet
-//     const formData = new FormData();
-//     formData.append('action', 'fetchTasks'); // Use fetchTasks instead of fetchStaff
-//     formData.append('sheetId', SHEET_ID);
-//     formData.append('sheetName', MASTER_SHEET);
-    
-//     const response = await fetch(SCRIPT_URL, {
-//       method: 'POST',
-//       body: formData
-//     });
-    
-//     const data = await response.json();
-    
-//     if (data && data.success) {
-//       console.log("Staff data fetched from MASTER sheet:", data);
-      
-//       // Find the index for column C
-//       const columnCIndex = 2; // 0-indexed, C is the 3rd column (0-2)
-//       const colCId = data.headers?.[columnCIndex]?.id || 'colC';
-      
-//       // Count non-empty rows in column C (excluding header row)
-//       const staffCount = data.tasks.filter(row => 
-//         row[colCId] !== undefined && 
-//         row[colCId] !== null && 
-//         row[colCId].toString().trim() !== ''
-//       ).length;
-      
-//       console.log("Active staff count from column C:", staffCount);
-//       setActiveStaffCount(staffCount);
-//     } else {
-//       console.error("Error fetching staff data:", data?.error || "Unknown error");
-//       // If there's an error, we'll set a default count - you might have a different fallback strategy
-//       setActiveStaffCount(data.tasks?.length || 0);
-//     }
-//   } catch (error) {
-//     console.error("Error in fetchStaffData:", error);
-//     setActiveStaffCount(0); // Fallback in case of error
-//   }
-// };
-
-// // To implement this fix, replace your current fetchStaffData function with this one
-// // in your useEffect that fetches the data
-    
-//     fetchData();
-//   }, []);
-
-//   // Filter tasks based on the filter criteria
-//   const filteredTasks = allTasks.filter((task) => {
-//     // Find column indices
-//     const colLIndex = 11; // 0-indexed, L is 12th column (0-11)
-//     const colMIndex = 12; // 0-indexed, M is 13th column (0-12)
-//     const colEIndex = 4;  // 0-indexed, E is 5th column (0-4)
-    
-//     // Get column IDs
-//     const colLId = 'colL';
-//     const colMId = 'colM';
-//     const colEId = 'colE';
-    
-//     // Filter by status
-//     if (filterStatus !== "all") {
-//       if (filterStatus === "completed" && 
-//           (!task[colLId] || !task[colMId])) {
-//         return false;
-//       }
-//       if (filterStatus === "pending" && 
-//           (!task[colLId] || task[colMId] || isOverdue(task[colLId]))) {
-//         return false;
-//       }
-//       if (filterStatus === "overdue" && 
-//           (!task[colLId] || task[colMId] || !isOverdue(task[colLId]))) {
-//         return false;
-//       }
-//     }
-
-//     // Filter by staff (using column E)
-//     if (filterStaff !== "all") {
-//       if (!task[colEId] || task[colEId].toString().trim() !== filterStaff) {
-//         return false;
-//       }
-//     }
-
-//     // Filter by search query (searches all fields)
-//     if (searchQuery) {
-//       const query = searchQuery.toLowerCase();
-//       return Object.values(task).some(value => 
-//         value && value.toString().toLowerCase().includes(query)
-//       );
-//     }
-
-//     return true;
-//   });
-
-//   // Filter tasks based on the tab view
-//   const getTasksByView = (view) => {
-//     // Column L ID
-//     const colLId = 'colL';
-//     const colMId = 'colM';
-    
-//     switch (view) {
-//       case "recent":
-//         // Tasks with column L matching today's date (format: "14/04/2025 12:48:29")
-//         return filteredTasks.filter(task => isToday(task[colLId]));
-        
-//       case "upcoming":
-//         // Tasks with column L matching tomorrow's date
-//         return filteredTasks.filter(task => isTomorrow(task[colLId]));
-        
-//       case "overdue":
-//         // Tasks with column L with date at least 2 months ago and column M is null
-//         return filteredTasks.filter(task => 
-//           isOverdue(task[colLId]) && 
-//           (!task[colMId] || task[colMId].toString().trim() === '')
-//         );
-        
-//       default:
-//         return filteredTasks;
-//     }
-//   };
-
-//   // Get status badge color
-//   const getStatusBadge = (status) => {
-//     switch (status) {
-//       case "completed":
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500 text-white">Completed</span>;
-//       case "pending":
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500 text-white">Pending</span>;
-//       case "overdue":
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">Overdue</span>;
-//       default:
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-500 text-white">Unknown</span>;
-//     }
-//   };
-
-//   // Get frequency badge color
-//   const getFrequencyBadge = (frequency) => {
-//     switch (frequency) {
-//       case "daily":
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500 text-white">Daily</span>;
-//       case "weekly":
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-500 text-white">Weekly</span>;
-//       case "monthly":
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-500 text-white">Monthly</span>;
-//       default:
-//         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-500 text-white">One-time</span>;
-//     }
-//   };
-
-//   // Render loading state
-//   if (isLoading) {
-//     return (
-//       <div className="flex justify-center items-center h-screen">
-//         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
-//       </div>
-//     );
-//   }
-
-//   // Render error state
-//   if (error) {
-//     return (
-//       <div className="flex justify-center items-center h-screen">
-//         <div className="text-center">
-//           <p className="text-red-500 text-xl mb-4">{error}</p>
-//           <button 
-//             onClick={() => window.location.reload()}
-//             className="px-4 py-2 bg-purple-600 text-white rounded-md"
-//           >
-//             Try Again
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // Calculate task completion rate
-//   const completionRate = taskCounts.total > 0 
-//     ? ((taskCounts.completed / taskCounts.total) * 100).toFixed(1)
-//     : 0;
-    
-//   // Calculate on-time vs late completion (placeholder values)
-//   const onTimePercentage = parseFloat(completionRate) * 0.9; // 90% of completions are on time (example)
-//   const latePercentage = parseFloat(completionRate) - onTimePercentage;
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       <div className="overflow-auto">
-//         <div className="p-6 max-w-7xl mx-auto">
-//           {/* Header */}
-//           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-//             <h1 className="text-2xl font-bold text-purple-700">Admin Dashboard</h1>
-//             {/* <div className="mt-2 md:mt-0">
-//               <select
-//                 value={timeframe}
-//                 onChange={(e) => setTimeframe(e.target.value)}
-//                 className="border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-//               >
-//                 <option value="weekly">Weekly</option>
-//                 <option value="monthly">Monthly</option>
-//                 <option value="quarterly">Quarterly</option>
-//                 <option value="yearly">Yearly</option>
-//               </select>
-//             </div> */}
-//           </div>
-
-//           {/* Stats cards */}
-//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-//             <div className="border border-l-4 border-l-blue-500 rounded-lg shadow-sm bg-white">
-//               <div className="p-3 pb-2 bg-gradient-to-r from-blue-50 to-blue-100 border-b">
-//                 <div className="flex justify-between items-center">
-//                   <h3 className="text-sm font-medium text-blue-700">Total Tasks</h3>
-//                   <svg
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     className="h-4 w-4 text-blue-500"
-//                     viewBox="0 0 20 20"
-//                     fill="currentColor"
-//                   >
-//                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-//                     <path
-//                       fillRule="evenodd"
-//                       d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-//                       clipRule="evenodd"
-//                     />
-//                   </svg>
-//                 </div>
-//               </div>
-//               <div className="p-4">
-//                 <div className="text-3xl font-bold text-blue-700">{taskCounts.total}</div>
-//                 <p className="text-xs text-blue-600">All tasks in DATA sheet</p>
-//               </div>
-//             </div>
-
-//             <div className="border border-l-4 border-l-green-500 rounded-lg shadow-sm bg-white">
-//               <div className="p-3 pb-2 bg-gradient-to-r from-green-50 to-green-100 border-b">
-//                 <div className="flex justify-between items-center">
-//                   <h3 className="text-sm font-medium text-green-700">Completed Tasks</h3>
-//                   <svg
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     className="h-4 w-4 text-green-500"
-//                     viewBox="0 0 20 20"
-//                     fill="currentColor"
-//                   >
-//                     <path
-//                       fillRule="evenodd"
-//                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-//                       clipRule="evenodd"
-//                     />
-//                   </svg>
-//                 </div>
-//               </div>
-//               <div className="p-4">
-//                 <div className="text-3xl font-bold text-green-700">{taskCounts.completed}</div>
-//                 <p className="text-xs text-green-600">Column L & M not null</p>
-//               </div>
-//             </div>
-
-//             <div className="border border-l-4 border-l-amber-500 rounded-lg shadow-sm bg-white">
-//               <div className="p-3 pb-2 bg-gradient-to-r from-amber-50 to-amber-100 border-b">
-//                 <div className="flex justify-between items-center">
-//                   <h3 className="text-sm font-medium text-amber-700">Pending Tasks</h3>
-//                   <svg
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     className="h-4 w-4 text-amber-500"
-//                     viewBox="0 0 20 20"
-//                     fill="currentColor"
-//                   >
-//                     <path
-//                       fillRule="evenodd"
-//                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-//                       clipRule="evenodd"
-//                     />
-//                   </svg>
-//                 </div>
-//               </div>
-//               <div className="p-4">
-//                 <div className="text-3xl font-bold text-amber-700">{taskCounts.pending}</div>
-//                 <p className="text-xs text-amber-600">Column L not null, M null, not overdue</p>
-//               </div>
-//             </div>
-
-//             <div className="border border-l-4 border-l-red-500 rounded-lg shadow-sm bg-white">
-//               <div className="p-3 pb-2 bg-gradient-to-r from-red-50 to-red-100 border-b">
-//                 <div className="flex justify-between items-center">
-//                   <h3 className="text-sm font-medium text-red-700">Overdue Tasks</h3>
-//                   <svg
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     className="h-4 w-4 text-red-500"
-//                     viewBox="0 0 20 20"
-//                     fill="currentColor"
-//                   >
-//                     <path
-//                       fillRule="evenodd"
-//                       d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-//                       clipRule="evenodd"
-//                     />
-//                   </svg>
-//                 </div>
-//               </div>
-//               <div className="p-4">
-//                 <div className="text-3xl font-bold text-red-700">{taskCounts.overdue}</div>
-//                 <p className="text-xs text-red-600">Column L date 2+ months old, M null</p>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Task tabs */}
-//           {/* <div className="mb-6">
-//             <div className="grid grid-cols-3 bg-white border border-gray-200 rounded-t-lg overflow-hidden">
-//               <button
-//                 className={`py-3 text-center font-medium transition-colors ${
-//                   taskView === "recent" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-//                 }`}
-//                 onClick={() => setTaskView("recent")}
-//               >
-//                 Recent Tasks (Today)
-//               </button>
-//               <button
-//                 className={`py-3 text-center font-medium transition-colors ${
-//                   taskView === "upcoming" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-//                 }`}
-//                 onClick={() => setTaskView("upcoming")}
-//               >
-//                 Upcoming Tasks (Tomorrow)
-//               </button>
-//               <button
-//                 className={`py-3 text-center font-medium transition-colors ${
-//                   taskView === "overdue" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-//                 }`}
-//                 onClick={() => setTaskView("overdue")}
-//               >
-//                 Overdue Tasks (2+ months)
-//               </button>
-//             </div>
-
-//             <div className="border border-t-0 border-gray-200 rounded-b-lg bg-white p-4">
-//               <div className="flex flex-col md:flex-row gap-4 mb-6">
-//                 <div className="flex-1">
-//                   <div className="flex items-center mb-2">
-//                     <svg
-//                       xmlns="http://www.w3.org/2000/svg"
-//                       className="h-4 w-4 mr-2 text-purple-700"
-//                       viewBox="0 0 20 20"
-//                       fill="currentColor"
-//                     >
-//                       <path
-//                         fillRule="evenodd"
-//                         d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-//                         clipRule="evenodd"
-//                       />
-//                     </svg>
-//                     <label className="text-sm font-medium text-purple-700">Search Tasks</label>
-//                   </div>
-//                   <input
-//                     type="text"
-//                     placeholder="Search by task title"
-//                     value={searchQuery}
-//                     onChange={(e) => setSearchQuery(e.target.value)}
-//                     className="w-full border border-purple-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-//                   />
-//                 </div>
-//                 <div className="w-full md:w-48">
-//                   <div className="flex items-center mb-2">
-//                     <svg
-//                       xmlns="http://www.w3.org/2000/svg"
-//                       className="h-4 w-4 mr-2 text-purple-700"
-//                       viewBox="0 0 20 20"
-//                       fill="currentColor"
-//                     >
-//                       <path
-//                         fillRule="evenodd"
-//                         d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-//                         clipRule="evenodd"
-//                       />
-//                     </svg>
-//                     <label className="text-sm font-medium text-purple-700">Filter by Status</label>
-//                   </div>
-//                   <select
-//                     value={filterStatus}
-//                     onChange={(e) => setFilterStatus(e.target.value)}
-//                     className="w-full border border-purple-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-//                   >
-//                     <option value="all">All Statuses</option>
-//                     <option value="pending">Pending</option>
-//                     <option value="completed">Completed</option>
-//                     <option value="overdue">Overdue</option>
-//                   </select>
-//                 </div>
-//                 <div className="w-full md:w-48">
-//                   <div className="flex items-center mb-2">
-//                     <svg
-//                       xmlns="http://www.w3.org/2000/svg"
-//                       className="h-4 w-4 mr-2 text-purple-700"
-//                       viewBox="0 0 20 20"
-//                       fill="currentColor"
-//                     >
-//                       <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-//                     </svg>
-//                     <label className="text-sm font-medium text-purple-700">Filter by Staff</label>
-//                   </div>
-//                   <select
-//                     value={filterStaff}
-//                     onChange={(e) => setFilterStaff(e.target.value)}
-//                     className="w-full border border-purple-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-//                   >
-//                     <option value="all">All Staff</option>
-//                     {staffMembers.map((staff) => (
-//                       <option key={staff.id} value={staff.name}>
-//                         {staff.name}
-//                       </option>
-//                     ))}
-//                   </select>
-//                 </div>
-//               </div>
-
-//               {getTasksByView(taskView).length === 0 ? (
-//                 <div className="text-center p-8 text-gray-500">
-//                   <p>No tasks found matching your filters.</p>
-//                 </div>
-//               ) : (
-//                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//                   {getTasksByView(taskView).map((task, index) => {
-//                     // Determine task status based on columns L and M
-//                     const colLId = 'colL';
-//                     const colMId = 'colM';
-                    
-//                     let status = "unknown";
-//                     if (task[colLId] && task[colMId]) {
-//                       status = "completed";
-//                     } else if (task[colLId] && !task[colMId] && !isOverdue(task[colLId])) {
-//                       status = "pending";
-//                     } else if (task[colLId] && !task[colMId] && isOverdue(task[colLId])) {
-//                       status = "overdue";
-//                     }
-                    
-//                     // Get frequency value - assuming there's a frequency column
-//                     // Replace this with your actual frequency column
-//                     const frequency = task.frequency || "daily"; 
-                    
-//                     return (
-//                       <div
-//                         key={index}
-//                         className="border border-purple-200 rounded-lg shadow-sm hover:shadow-md transition-all bg-white"
-//                       >
-//                         <div className="p-4 pb-2 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-200">
-//                           <div className="flex items-center justify-between">
-//                             <h3 className="text-md font-semibold text-purple-700">{task.title || `Task #${index + 1}`}</h3>
-//                             {getStatusBadge(status)}
-//                           </div>
-//                           <p className="text-sm text-purple-600">Assigned to: {task.colE || "Unassigned"}</p>
-//                         </div>
-//                         <div className="p-4 pt-4">
-//                           <div className="flex items-center justify-between">
-//                             <div className="text-sm text-gray-600">Due: {task[colLId] || "No date"}</div>
-//                             {getFrequencyBadge(frequency)}
-//                           </div>
-//                         </div>
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               )}
-//             </div>
-//           </div> */}
-
-//           {/* Bottom stats */}
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//             <div className="border border-l-4 border-l-purple-500 rounded-lg shadow-sm bg-white">
-//               <div className="p-3 pb-2 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                 <div className="flex justify-between items-center">
-//                   <h3 className="text-sm font-medium text-purple-700">Active Staff</h3>
-//                   <svg
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     className="h-4 w-4 text-purple-500"
-//                     viewBox="0 0 20 20"
-//                     fill="currentColor"
-//                   >
-//                     <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-//                   </svg>
-//                 </div>
-//               </div>
-//               <div className="p-4">
-//                 <div className="text-3xl font-bold text-purple-700">{activeStaffCount}</div>
-//                 <p className="text-xs text-purple-600">Staff members in MASTER sheet column C</p>
-//               </div>
-//             </div>
-
-//             <div className="border border-l-4 border-l-purple-500 rounded-lg shadow-sm bg-white">
-//               <div className="p-3 pb-2 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                 <div className="flex justify-between items-center">
-//                   <h3 className="text-sm font-medium text-purple-700">Task Completion Rate</h3>
-//                   <div className="h-4 w-4 text-purple-500">📊</div>
-//                 </div>
-//               </div>
-//               <div className="p-4">
-//                 <div className="text-3xl font-bold text-purple-700">{completionRate}%</div>
-//                 <div className="mt-2">
-//                   <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-//                     <div
-//                       className="h-full bg-gradient-to-r from-green-500 to-yellow-500"
-//                       style={{ width: `${completionRate}%` }}
-//                     ></div>
-//                   </div>
-//                   <div className="flex justify-between mt-1 text-xs">
-//                     <div className="flex items-center gap-1">
-//                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
-//                       <span>On Time: {onTimePercentage.toFixed(1)}%</span>
-//                     </div>
-//                     <div className="flex items-center gap-1">
-//                       <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-//                       <span>Late: {latePercentage.toFixed(1)}%</span>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Main tabs */}
-//           <div className="mb-6">
-//             <div className="flex bg-white border border-gray-200 p-0 h-auto">
-//               <button
-//                 onClick={() => setActiveTab("overview")}
-//                 className={`px-4 py-2 ${
-//                   activeTab === "overview" ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-gray-100"
-//                 }`}
-//               >
-//                 Overview
-//               </button>
-//               <button
-//                 onClick={() => setActiveTab("mis")}
-//                 className={`px-4 py-2 ${
-//                   activeTab === "mis" ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-gray-100"
-//                 }`}
-//               >
-//                 MIS Report
-//               </button>
-//               <button
-//                 onClick={() => setActiveTab("staff")}
-//                 className={`px-4 py-2 ${
-//                   activeTab === "staff" ? "bg-purple-600 text-white" : "text-gray-600 hover:bg-gray-100"
-//                 }`}
-//               >
-//                 Staff Performance
-//               </button>
-//             </div>
-
-//             {activeTab === "overview" && (
-//               <div className="mt-6">
-//                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-//                   {/* Tasks Overview Chart */}
-//                   <div className="border rounded-lg shadow-sm bg-white">
-//                     <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                       <h3 className="text-lg font-semibold text-purple-700">Tasks Overview</h3>
-//                       <p className="text-sm text-purple-600">Task completion rate over time</p>
-//                     </div>
-//                     <div className="p-4 pt-6">
-//                       <ResponsiveContainer width="100%" height={300}>
-//                         <BarChart data={monthlyData}>
-//                           <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-//                           <XAxis dataKey="name" />
-//                           <YAxis />
-//                           <Tooltip />
-//                           <Legend />
-//                           <Bar dataKey="completed" name="Completed" fill="#4ade80" />
-//                           <Bar dataKey="pending" name="Pending" fill="#fb7185" />
-//                         </BarChart>
-//                       </ResponsiveContainer>
-//                     </div>
-//                   </div>
-
-//                   {/* Task Status Chart */}
-//                   <div className="border rounded-lg shadow-sm bg-white">
-//                     <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                       <h3 className="text-lg font-semibold text-purple-700">Task Status</h3>
-//                       <p className="text-sm text-purple-600">Distribution of tasks by status</p>
-//                     </div>
-//                     <div className="p-4 pt-6">
-//                       <ResponsiveContainer width="100%" height={300}>
-//                         <PieChart>
-//                           <Pie
-//                             data={pieData}
-//                             cx="50%"
-//                             cy="50%"
-//                             innerRadius={60}
-//                             outerRadius={80}
-//                             paddingAngle={2}
-//                             dataKey="value"
-//                           >
-//                             {pieData.map((entry, index) => (
-//                               <Cell key={`cell-${index}`} fill={entry.color} />
-//                             ))}
-//                           </Pie>
-//                           <Tooltip />
-//                           <Legend />
-//                         </PieChart>
-//                       </ResponsiveContainer>
-//                       <div className="flex justify-center mt-4 gap-4">
-//                         <div className="flex items-center gap-1">
-//                           <div className="w-3 h-3 rounded-full bg-green-400"></div>
-//                           <span className="text-xs">Completed</span>
-//                         </div>
-//                         <div className="flex items-center gap-1">
-//                           <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-//                           <span className="text-xs">Pending</span>
-//                         </div>
-//                         <div className="flex items-center gap-1">
-//                           <div className="w-3 h-3 rounded-full bg-red-500"></div>
-//                           <span className="text-xs">Overdue</span>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-
-//                 {/* Staff Task Summary */}
-//                 <div className="border rounded-lg shadow-sm bg-white mb-6">
-//                   <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                     <h3 className="text-lg font-semibold text-purple-700">Staff Task Summary</h3>
-//                     <p className="text-sm text-purple-600">Overview of tasks assigned to each staff member (based on column E)</p>
-//                   </div>
-//                   <div className="p-4">
-//                     <div className="overflow-x-auto">
-//                       <table className="min-w-full divide-y divide-gray-200">
-//                         <thead className="bg-gray-50">
-//                           <tr>
-//                             <th
-//                               scope="col"
-//                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                             >
-//                               Name
-//                             </th>
-//                             <th
-//                               scope="col"
-//                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                             >
-//                               Total Tasks
-//                             </th>
-//                             <th
-//                               scope="col"
-//                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                             >
-//                               Completed
-//                             </th>
-//                             <th
-//                               scope="col"
-//                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                             >
-//                               Pending
-//                             </th>
-//                             <th
-//                               scope="col"
-//                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                             >
-//                               Progress
-//                             </th>
-//                             <th
-//                               scope="col"
-//                               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                             >
-//                               Status
-//                             </th>
-//                           </tr>
-//                         </thead>
-//                         <tbody className="bg-white divide-y divide-gray-200">
-//                           {staffMembers.map((staff) => (
-//                             <tr key={staff.id} className="hover:bg-gray-50">
-//                               <td className="px-6 py-4 whitespace-nowrap">
-//                                 <div>
-//                                   <div className="font-medium">{staff.name}</div>
-//                                   <div className="text-xs text-gray-500">{staff.email}</div>
-//                                 </div>
-//                               </td>
-//                               <td className="px-6 py-4 whitespace-nowrap">{staff.totalTasks}</td>
-//                               <td className="px-6 py-4 whitespace-nowrap">{staff.completedTasks}</td>
-//                               <td className="px-6 py-4 whitespace-nowrap">{staff.pendingTasks}</td>
-//                               <td className="px-6 py-4 whitespace-nowrap">
-//                                 <div className="flex items-center gap-2">
-//                                   <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-//                                     <div
-//                                       className={`h-full ${
-//                                         staff.progress >= 80
-//                                           ? "bg-green-500"
-//                                           : staff.progress >= 60
-//                                             ? "bg-amber-500"
-//                                             : "bg-red-500"
-//                                       }`}
-//                                       style={{ width: `${staff.progress}%` }}
-//                                     ></div>
-//                                   </div>
-//                                   <span className="text-xs text-gray-500">{staff.progress}%</span>
-//                                 </div>
-//                               </td>
-//                               <td className="px-6 py-4 whitespace-nowrap">
-//                                 {staff.progress >= 80 ? (
-//                                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500 text-white">
-//                                     Excellent
-//                                   </span>
-//                                 ) : staff.progress >= 60 ? (
-//                                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500 text-white">
-//                                     Good
-//                                   </span>
-//                                 ) : (
-//                                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">
-//                                     Needs Improvement
-//                                   </span>
-//                                 )}
-//                               </td>
-//                             </tr>
-//                           ))}
-//                         </tbody>
-//                       </table>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             )}
-
-//             {activeTab === "mis" && (
-//               <div className="mt-6">
-//                 <div className="border rounded-lg shadow-sm bg-white">
-//                   <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                     <h3 className="text-lg font-semibold text-purple-700">MIS Report</h3>
-//                     <p className="text-sm text-purple-600">Detailed task analytics and performance metrics</p>
-//                   </div>
-//                   <div className="p-4 pt-6">
-//                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-//                       <div className="border rounded-lg shadow-sm bg-white">
-//                         <div className="p-3 pb-2">
-//                           <h3 className="text-sm text-purple-700">Total Tasks Assigned</h3>
-//                         </div>
-//                         <div className="p-4">
-//                           <div className="text-3xl font-bold">{taskCounts.total}</div>
-//                         </div>
-//                       </div>
-//                       <div className="border rounded-lg shadow-sm bg-white">
-//                         <div className="p-3 pb-2">
-//                           <h3 className="text-sm text-purple-700">Tasks Completed On Time</h3>
-//                         </div>
-//                         <div className="p-4">
-//                           <div className="text-3xl font-bold">{taskCounts.completed}</div>
-//                         </div>
-//                       </div>
-//                       <div className="border rounded-lg shadow-sm bg-white">
-//                         <div className="p-3 pb-2">
-//                           <h3 className="text-sm text-purple-700">Tasks Still Pending</h3>
-//                         </div>
-//                         <div className="p-4">
-//                           <div className="text-3xl font-bold">{taskCounts.pending}</div>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             )}
-
-//             {activeTab === "staff" && (
-//               <div className="mt-6">
-//                 <div className="border rounded-lg shadow-sm bg-white">
-//                   <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border-b">
-//                     <h3 className="text-lg font-semibold text-purple-700">Staff Performance</h3>
-//                     <p className="text-sm text-purple-600">Task completion rates by staff member</p>
-//                   </div>
-//                   <div className="p-4 pt-6">
-//                     <div className="space-y-6">
-//                       <div className="border border-green-200 rounded-lg shadow-sm bg-white">
-//                         <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
-//                           <h3 className="text-lg font-semibold text-green-700">Top Performers</h3>
-//                           <p className="text-sm text-green-600">Staff with highest task completion rates</p>
-//                         </div>
-//                         <div className="p-4 pt-6">
-//                           <div className="space-y-4">
-//                             {staffMembers
-//                               .sort((a, b) => b.progress - a.progress)
-//                               .slice(0, 3)
-//                               .map((staff, index) => (
-//                                 <div
-//                                   key={index}
-//                                   className="flex items-center justify-between p-3 border border-green-100 rounded-md bg-green-50"
-//                                 >
-//                                   <div className="flex items-center gap-3">
-//                                     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
-//                                       <span className="text-sm font-medium text-white">{staff.name.charAt(0)}</span>
-//                                     </div>
-//                                     <div>
-//                                       <p className="font-medium text-green-700">{staff.name}</p>
-//                                       <p className="text-xs text-green-600">{staff.totalTasks} tasks assigned</p>
-//                                     </div>
-//                                   </div>
-//                                   <div className="text-lg font-bold text-green-600">{staff.progress}%</div>
-//                                 </div>
-//                               ))}
-//                           </div>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BarChart3, CheckCircle2, Clock, ListTodo, Users, AlertTriangle, Filter } from 'lucide-react'
 import AdminLayout from "../../components/layout/AdminLayout.jsx"
 import { 
@@ -1122,195 +17,380 @@ import {
   Cell
 } from "recharts"
 
-// Sample all tasks data
-const allTasks = [
-  {
-    id: 1,
-    title: "Complete weekly report",
-    assignedTo: "John Doe",
-    dueDate: "2023-05-15",
-    frequency: "weekly",
-    status: "completed",
-  },
-  {
-    id: 2,
-    title: "Update inventory records",
-    assignedTo: "Jane Smith",
-    dueDate: "2023-05-18",
-    frequency: "daily",
-    status: "pending",
-  },
-  {
-    id: 3,
-    title: "Monthly equipment maintenance",
-    assignedTo: "Robert Johnson",
-    dueDate: "2023-05-20",
-    frequency: "monthly",
-    status: "pending",
-  },
-  {
-    id: 4,
-    title: "Client follow-up calls",
-    assignedTo: "Emily Davis",
-    dueDate: "2023-05-16",
-    frequency: "weekly",
-    status: "overdue",
-  },
-  {
-    id: 5,
-    title: "Daily safety inspection",
-    assignedTo: "Michael Wilson",
-    dueDate: "2023-05-17",
-    frequency: "daily",
-    status: "pending",
-  },
-  {
-    id: 6,
-    title: "Quarterly financial review",
-    assignedTo: "John Doe",
-    dueDate: "2023-06-30",
-    frequency: "quarterly",
-    status: "pending",
-  },
-  {
-    id: 7,
-    title: "Staff performance evaluations",
-    assignedTo: "Jane Smith",
-    dueDate: "2023-05-25",
-    frequency: "monthly",
-    status: "pending",
-  },
-  {
-    id: 8,
-    title: "Update company policies",
-    assignedTo: "Robert Johnson",
-    dueDate: "2023-05-10",
-    frequency: "yearly",
-    status: "overdue",
-  },
-  {
-    id: 9,
-    title: "Website content update",
-    assignedTo: "Emily Davis",
-    dueDate: "2023-05-22",
-    frequency: "monthly",
-    status: "pending",
-  },
-  {
-    id: 10,
-    title: "Supplier contract review",
-    assignedTo: "Michael Wilson",
-    dueDate: "2023-05-12",
-    frequency: "quarterly",
-    status: "overdue",
-  },
-]
-
-// Staff members data
-const staffMembers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    totalTasks: 24,
-    completedTasks: 18,
-    pendingTasks: 6,
-    progress: 75,
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    totalTasks: 32,
-    completedTasks: 28,
-    pendingTasks: 4,
-    progress: 88,
-  },
-  {
-    id: 3,
-    name: "Robert Johnson",
-    email: "robert@example.com",
-    totalTasks: 18,
-    completedTasks: 12,
-    pendingTasks: 6,
-    progress: 67,
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    email: "emily@example.com",
-    totalTasks: 27,
-    completedTasks: 22,
-    pendingTasks: 5,
-    progress: 81,
-  },
-  {
-    id: 5,
-    name: "Michael Wilson",
-    email: "michael@example.com",
-    totalTasks: 15,
-    completedTasks: 9,
-    pendingTasks: 6,
-    progress: 60,
-  },
-]
-
-// Chart data
-const barChartData = [
-  {
-    name: "Jan",
-    completed: 45,
-    pending: 12,
-  },
-  {
-    name: "Feb",
-    completed: 52,
-    pending: 9,
-  },
-  {
-    name: "Mar",
-    completed: 48,
-    pending: 14,
-  },
-  {
-    name: "Apr",
-    completed: 61,
-    pending: 17,
-  },
-  {
-    name: "May",
-    completed: 55,
-    pending: 15,
-  },
-  {
-    name: "Jun",
-    completed: 67,
-    pending: 13,
-  },
-  {
-    name: "Jul",
-    completed: 62,
-    pending: 20,
-  },
-]
-
-const pieChartData = [
-  { name: "Completed", value: 182, color: "#22c55e" },
-  { name: "In Progress", value: 32, color: "#facc15" },
-  { name: "Pending", value: 24, color: "#f87171" },
-  { name: "Overdue", value: 10, color: "#ef4444" },
-]
-
 export default function AdminDashboard() {
-  const [timeframe, setTimeframe] = useState("weekly")
   const [taskView, setTaskView] = useState("recent")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterStaff, setFilterStaff] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("overview")
-
+  
+  // State for Master Sheet dropdown
+  const [masterSheetOptions, setMasterSheetOptions] = useState([])
+  const [selectedMasterOption, setSelectedMasterOption] = useState("")
+  const [isFetchingMaster, setIsFetchingMaster] = useState(false)
+  
+  // State for department data
+  const [departmentData, setDepartmentData] = useState({
+    allTasks: [],
+    staffMembers: [],
+    totalTasks: 0,
+    completedTasks: 0,
+    pendingTasks: 0,
+    overdueTasks: 0,
+    activeStaff: 0,
+    completionRate: 0,
+    barChartData: [],
+    pieChartData: []
+  })
+  
+  // Store the current date for overdue calculation
+  const [currentDate, setCurrentDate] = useState(new Date())
+  
+  // Format date as DD/MM/YYYY
+  const formatDateToDDMMYYYY = (date) => {
+    const day = date.getDate().toString().padStart(2, '0')
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+  }
+  
+  // Parse DD/MM/YYYY to Date object
+  const parseDateFromDDMMYYYY = (dateStr) => {
+    if (!dateStr || typeof dateStr !== 'string') return null
+    const parts = dateStr.split('/')
+    if (parts.length !== 3) return null
+    return new Date(parts[2], parts[1] - 1, parts[0])
+  }
+  
+  // Function to check if a date is in the past
+  const isDateInPast = (dateStr) => {
+    const date = parseDateFromDDMMYYYY(dateStr)
+    if (!date) return false
+    return date < currentDate
+  }
+  
+  // Safe access to cell value
+  const getCellValue = (row, index) => {
+    if (!row || !row.c || index >= row.c.length) return null
+    const cell = row.c[index]
+    return cell && 'v' in cell ? cell.v : null
+  }
+  
+  // Parse Google Sheets Date format into a proper date string
+  const parseGoogleSheetsDate = (dateStr) => {
+    if (!dateStr) return ''
+    
+    if (typeof dateStr === 'string' && dateStr.startsWith('Date(')) {
+      // Handle Google Sheets Date(year,month,day) format
+      const match = /Date\((\d+),(\d+),(\d+)\)/.exec(dateStr)
+      if (match) {
+        const year = parseInt(match[1], 10)
+        const month = parseInt(match[2], 10) // 0-indexed in Google's format
+        const day = parseInt(match[3], 10)
+        
+        // Format as DD/MM/YYYY
+        return `${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}/${year}`
+      }
+    }
+    
+    // If it's already in DD/MM/YYYY format, return as is
+    if (typeof dateStr === 'string' && dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      return dateStr
+    }
+    
+    // If we get here, try to parse as a date and format
+    try {
+      const date = new Date(dateStr)
+      if (!isNaN(date.getTime())) {
+        return formatDateToDDMMYYYY(date)
+      }
+    } catch (e) {
+      console.error("Error parsing date:", e)
+    }
+    
+    // Return original if parsing fails
+    return dateStr
+  }
+  
+  // Function to fetch column A from master sheet
+  const fetchMasterSheetColumnA = async () => {
+    try {
+      setIsFetchingMaster(true)
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1jOBkMxcHrusTlAV9l21JN-B-5QWq1dDyj3-0kxbK6ik/gviz/tq?tqx=out:json&sheet=MASTER`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch master sheet data: ${response.status}`)
+      }
+      
+      const text = await response.text()
+      const jsonStart = text.indexOf('{')
+      const jsonEnd = text.lastIndexOf('}')
+      const jsonString = text.substring(jsonStart, jsonEnd + 1)
+      const data = JSON.parse(jsonString)
+      
+      // Extract column A values (first column)
+      const columnAValues = data.table.rows
+        .map(row => {
+          // Check if row has 'c' property and first cell exists
+          if (row && row.c && row.c[0]) {
+            // Get value from first cell ('v' property)
+            return row.c[0].v || null
+          }
+          return null
+        })
+        .filter(value => value !== null && value !== '') // Remove empty values
+      
+      // Add default option
+      const options = ["Select Department", ...columnAValues]
+      setMasterSheetOptions(options)
+      
+      // If no option is selected yet, set the default
+      if (!selectedMasterOption) {
+        setSelectedMasterOption(options[0])
+      }
+      
+      // Count active staff (column C)
+      let activeStaffCount = 0
+      data.table.rows.forEach(row => {
+        const cellValue = getCellValue(row, 2) // Column C (index 2)
+        if (cellValue !== null && cellValue !== '') {
+          activeStaffCount++
+        }
+      })
+      
+      setDepartmentData(prev => ({
+        ...prev,
+        activeStaff: activeStaffCount
+      }))
+      
+    } catch (error) {
+      console.error("Error fetching master sheet data:", error)
+      // Add fallback options in case of error
+      setMasterSheetOptions(["Error loading master data"])
+    } finally {
+      setIsFetchingMaster(false)
+    }
+  }
+  
+  // Function to fetch department sheet data
+  const fetchDepartmentData = async (department) => {
+    if (!department || department === "Select Department") {
+      return
+    }
+    
+    try {
+      setIsFetchingMaster(true)
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1jOBkMxcHrusTlAV9l21JN-B-5QWq1dDyj3-0kxbK6ik/gviz/tq?tqx=out:json&sheet=${department}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${department} sheet data: ${response.status}`)
+      }
+      
+      const text = await response.text()
+      const jsonStart = text.indexOf('{')
+      const jsonEnd = text.lastIndexOf('}')
+      const jsonString = text.substring(jsonStart, jsonEnd + 1)
+      const data = JSON.parse(jsonString)
+      
+      // Get current user details
+      const username = sessionStorage.getItem('username')
+      const userRole = sessionStorage.getItem('role')
+      
+      // Initialize counters
+      let totalTasks = 0
+      let completedTasks = 0
+      let pendingTasks = 0
+      let overdueTasks = 0
+      
+      // Monthly data for bar chart
+      const monthlyData = {
+        Jan: { completed: 0, pending: 0 },
+        Feb: { completed: 0, pending: 0 },
+        Mar: { completed: 0, pending: 0 },
+        Apr: { completed: 0, pending: 0 },
+        May: { completed: 0, pending: 0 },
+        Jun: { completed: 0, pending: 0 },
+        Jul: { completed: 0, pending: 0 },
+        Aug: { completed: 0, pending: 0 },
+        Sep: { completed: 0, pending: 0 },
+        Oct: { completed: 0, pending: 0 },
+        Nov: { completed: 0, pending: 0 },
+        Dec: { completed: 0, pending: 0 }
+      }
+      
+      // Status data for pie chart
+      const statusData = {
+        Completed: 0,
+        Pending: 0,
+        Overdue: 0
+      }
+      
+      // Staff tracking map
+      const staffTrackingMap = new Map()
+      
+      // Process row data
+      const processedRows = data.table.rows.map((row, rowIndex) => {
+        // Skip header row
+        if (rowIndex === 0) return null
+        
+        // For non-admin users, filter by username in Column E (index 4)
+        const assignedTo = getCellValue(row, 4) || 'Unassigned'
+        const isUserMatch = userRole === 'admin' || 
+                            assignedTo.toLowerCase() === username.toLowerCase()
+        
+        // If not a match and not admin, skip this row
+        if (!isUserMatch) return null
+        
+        // Check column B for valid task row
+        const columnBValue = getCellValue(row, 1) // Column B (index 1)
+        if (columnBValue === null || columnBValue === '') return null
+        
+        totalTasks++
+        
+        // Get task details
+        const title = columnBValue || 'Untitled Task'
+        
+        // Track staff details
+        if (!staffTrackingMap.has(assignedTo)) {
+          staffTrackingMap.set(assignedTo, {
+            name: assignedTo,
+            totalTasks: 0,
+            completedTasks: 0,
+            pendingTasks: 0,
+            progress: 0
+          })
+        }
+        const staffData = staffTrackingMap.get(assignedTo)
+        staffData.totalTasks++
+        
+        // Get due date from Column L (index 11)
+        let dueDateValue = getCellValue(row, 11)
+        const dueDate = dueDateValue ? parseGoogleSheetsDate(String(dueDateValue)) : ''
+        
+        // Get completion date from Column M (index 12)
+        let completionDateValue = getCellValue(row, 12)
+        const completedDate = completionDateValue ? parseGoogleSheetsDate(String(completionDateValue)) : ''
+        
+        // Determine task status
+        let status = 'pending'
+        const today = new Date()
+        
+        if (dueDate && completedDate) {
+          // Task is completed
+          status = 'completed'
+          completedTasks++
+          statusData.Completed++
+          staffData.completedTasks++
+          
+          // Update monthly data
+          const completedMonth = parseDateFromDDMMYYYY(completedDate)
+          if (completedMonth) {
+            const monthName = completedMonth.toLocaleString('default', { month: 'short' })
+            if (monthlyData[monthName]) {
+              monthlyData[monthName].completed++
+            }
+          }
+        } else if (dueDate && isDateInPast(dueDate)) {
+          // Task is overdue
+          status = 'overdue'
+          overdueTasks++
+          statusData.Overdue++
+        } else if (dueDate) {
+          // Task is pending
+          pendingTasks++
+          statusData.Pending++
+          staffData.pendingTasks++
+          
+          // Update monthly data
+          const dueMonth = parseDateFromDDMMYYYY(dueDate)
+          if (dueMonth) {
+            const monthName = dueMonth.toLocaleString('default', { month: 'short' })
+            if (monthlyData[monthName]) {
+              monthlyData[monthName].pending++
+            }
+          }
+        }
+        
+        return {
+          id: rowIndex,
+          title,
+          assignedTo,
+          dueDate,
+          status,
+          frequency: getCellValue(row, 5) || 'one-time'
+        }
+      }).filter(task => task !== null)
+      
+      // Calculate completion rate
+      const completionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0
+      
+      // Convert monthly data to chart format
+      const barChartData = Object.entries(monthlyData).map(([name, data]) => ({
+        name,
+        completed: data.completed,
+        pending: data.pending
+      }))
+      
+      // Convert status data to pie chart format
+      const pieChartData = [
+        { name: "Completed", value: statusData.Completed, color: "#22c55e" },
+        { name: "Pending", value: statusData.Pending, color: "#facc15" },
+        { name: "Overdue", value: statusData.Overdue, color: "#ef4444" }
+      ]
+      
+      // Process staff tracking map
+      const staffMembers = Array.from(staffTrackingMap.values()).map(staff => {
+        const progress = staff.totalTasks > 0 
+          ? Math.round((staff.completedTasks / staff.totalTasks) * 100) 
+          : 0
+        
+        return {
+          id: staff.name.replace(/\s+/g, '-').toLowerCase(),
+          name: staff.name,
+          email: `${staff.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+          totalTasks: staff.totalTasks,
+          completedTasks: staff.completedTasks,
+          pendingTasks: staff.pendingTasks,
+          progress
+        }
+      })
+      
+      // Update department data state
+      setDepartmentData({
+        allTasks: processedRows,
+        staffMembers,
+        totalTasks,
+        completedTasks,
+        pendingTasks,
+        overdueTasks,
+        activeStaff: departmentData.activeStaff,
+        completionRate,
+        barChartData,
+        pieChartData
+      })
+      
+    } catch (error) {
+      console.error(`Error fetching ${department} sheet data:`, error)
+    } finally {
+      setIsFetchingMaster(false)
+    }
+  }
+  
+  // Fetch master sheet data on component mount
+  useEffect(() => {
+    setCurrentDate(new Date())
+    fetchMasterSheetColumnA()
+  }, [])
+  
+  // Fetch department data when selection changes
+  useEffect(() => {
+    if (selectedMasterOption && selectedMasterOption !== "Select Department") {
+      fetchDepartmentData(selectedMasterOption)
+    }
+  }, [selectedMasterOption])
+  
   // Filter tasks based on the filter criteria
-  const filteredTasks = allTasks.filter((task) => {
+  const filteredTasks = departmentData.allTasks.filter((task) => {
     // Filter by status
     if (filterStatus !== "all" && task.status !== filterStatus) return false
 
@@ -1326,21 +406,44 @@ export default function AdminDashboard() {
   })
 
   // Filter tasks based on the tab view
-  const getTasksByView = (view) => {
+// Filter tasks based on the tab view
+const getTasksByView = (view) => {
+  // Get today's date and tomorrow's date for filtering
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  return filteredTasks.filter((task) => {
+    if (task.status === "completed") return false; // Don't show completed tasks in any view
+    
+    const dueDate = parseDateFromDDMMYYYY(task.dueDate);
+    if (!dueDate) return false; // Skip tasks without valid due dates
+    
     switch (view) {
       case "recent":
-        // Tasks created recently (for demo, we'll just return some)
-        return filteredTasks.slice(0, 5)
+        // Show tasks due today (pending only)
+        return (
+          dueDate.getDate() === today.getDate() &&
+          dueDate.getMonth() === today.getMonth() &&
+          dueDate.getFullYear() === today.getFullYear()
+        );
       case "upcoming":
-        // Tasks with upcoming due dates
-        return filteredTasks.filter((task) => task.status === "pending")
+        // Show tasks due tomorrow (pending only)
+        return (
+          dueDate.getDate() === tomorrow.getDate() &&
+          dueDate.getMonth() === tomorrow.getMonth() &&
+          dueDate.getFullYear() === tomorrow.getFullYear()
+        );
       case "overdue":
-        // Tasks that are overdue
-        return filteredTasks.filter((task) => task.status === "overdue")
+        // Show tasks with due dates in the past (pending only)
+        return dueDate < today;
       default:
-        return filteredTasks
+        return true;
     }
-  }
+  });
+};
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -1376,17 +479,11 @@ export default function AdminDashboard() {
     }
   }
 
-  // Count tasks by status
-  const totalTasks = allTasks.length
-  const completedTasks = allTasks.filter((task) => task.status === "completed").length
-  const pendingTasks = allTasks.filter((task) => task.status === "pending").length
-  const overdueTasks = allTasks.filter((task) => task.status === "overdue").length
-
   // Tasks Overview Chart Component
   const TasksOverviewChart = () => {
     return (
       <ResponsiveContainer width="100%" height={350}>
-        <BarChart data={barChartData}>
+        <BarChart data={departmentData.barChartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis dataKey="name" fontSize={12} stroke="#888888" tickLine={false} axisLine={false} />
           <YAxis fontSize={12} stroke="#888888" tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
@@ -1404,8 +501,8 @@ export default function AdminDashboard() {
     return (
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
-          <Pie data={pieChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
-            {pieChartData.map((entry, index) => (
+          <Pie data={departmentData.pieChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value">
+            {departmentData.pieChartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
@@ -1444,7 +541,7 @@ export default function AdminDashboard() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {staffMembers.map((staff) => (
+            {departmentData.staffMembers.map((staff) => (
               <tr key={staff.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
@@ -1487,19 +584,27 @@ export default function AdminDashboard() {
   }
 
   return (
+    <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-purple-500">Admin Dashboard</h1>
           <div className="flex items-center gap-2">
+            {/* Master Sheet Column A dropdown */}
             <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              className="w-[180px] rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              value={selectedMasterOption}
+              onChange={(e) => setSelectedMasterOption(e.target.value)}
+              className="w-[180px] text-white rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              disabled={isFetchingMaster}
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
+              {isFetchingMaster ? (
+                <option>Loading...</option>
+              ) : (
+                masterSheetOptions.map((option, index) => (
+                  <option key={index} value={option}>
+                    {option}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>
@@ -1511,8 +616,10 @@ export default function AdminDashboard() {
               <ListTodo className="h-4 w-4 text-blue-500" />
             </div>
             <div className="p-4">
-              <div className="text-3xl font-bold text-blue-700">{totalTasks}</div>
-              <p className="text-xs text-blue-600">+12% from last month</p>
+              <div className="text-3xl font-bold text-blue-700">{departmentData.totalTasks}</div>
+              <p className="text-xs text-blue-600">
+                {selectedMasterOption !== "Select Department" ? `Total tasks in ${selectedMasterOption}` : "Select a department"}
+              </p>
             </div>
           </div>
 
@@ -1522,8 +629,8 @@ export default function AdminDashboard() {
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </div>
             <div className="p-4">
-              <div className="text-3xl font-bold text-green-700">{completedTasks}</div>
-              <p className="text-xs text-green-600">+8% from last month</p>
+              <div className="text-3xl font-bold text-green-700">{departmentData.completedTasks}</div>
+              <p className="text-xs text-green-600">Tasks with Column L & M filled</p>
             </div>
           </div>
 
@@ -1533,8 +640,8 @@ export default function AdminDashboard() {
               <Clock className="h-4 w-4 text-amber-500" />
             </div>
             <div className="p-4">
-              <div className="text-3xl font-bold text-amber-700">{pendingTasks}</div>
-              <p className="text-xs text-amber-600">-3% from last month</p>
+              <div className="text-3xl font-bold text-amber-700">{departmentData.pendingTasks}</div>
+              <p className="text-xs text-amber-600">Tasks with Column L filled, M empty</p>
             </div>
           </div>
 
@@ -1544,8 +651,8 @@ export default function AdminDashboard() {
               <AlertTriangle className="h-4 w-4 text-red-500" />
             </div>
             <div className="p-4">
-              <div className="text-3xl font-bold text-red-700">{overdueTasks}</div>
-              <p className="text-xs text-red-600">+2 from last month</p>
+              <div className="text-3xl font-bold text-red-700">{departmentData.overdueTasks}</div>
+              <p className="text-xs text-red-600">Tasks with Column L past due date</p>
             </div>
           </div>
         </div>
@@ -1623,51 +730,57 @@ export default function AdminDashboard() {
                   className="w-full rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 >
                   <option value="all">All Staff</option>
-                  <option value="John Doe">John Doe</option>
-                  <option value="Jane Smith">Jane Smith</option>
-                  <option value="Robert Johnson">Robert Johnson</option>
-                  <option value="Emily Davis">Emily Davis</option>
-                  <option value="Michael Wilson">Michael Wilson</option>
+                  {departmentData.staffMembers.map((staff) => (
+                    <option key={staff.id} value={staff.name}>
+                      {staff.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
             {getTasksByView(taskView).length === 0 ? (
-              <div className="text-center p-8 text-gray-500">
-                <p>No tasks found matching your filters.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {getTasksByView(taskView).map((task) => (
-                    <div
-                      key={task.id}
-                      className="rounded-lg border border-purple-200 shadow-md hover:shadow-lg transition-all bg-white"
-                    >
-                      <div className="p-4 pb-2 bg-gradient-to-r from-purple-50 to-pink-50">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-md text-purple-700">{task.title}</h3>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                          </span>
-                        </div>
-                        <p className="text-purple-600 text-sm">Assigned to: {task.assignedTo}</p>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-gray-600">Due: {task.dueDate}</div>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getFrequencyColor(task.frequency)}`}
-                          >
-                            {task.frequency.charAt(0).toUpperCase() + task.frequency.slice(1)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+  <div className="text-center p-8 text-gray-500">
+    <p>No tasks found matching your filters.</p>
+  </div>
+) : (
+  <div className="overflow-x-auto" style={{ maxHeight: "400px", overflowY: "auto" }}>
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50 sticky top-0 z-10">
+        <tr>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Task Id
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Assigned To 
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Due Date
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Task Title
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {getTasksByView(taskView).map((task) => (
+          <tr key={task.id} className="hover:bg-gray-50">
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{task.title}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.assignedTo}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{task.dueDate}</td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${getFrequencyColor(task.frequency)}`}
+              >
+                {task.frequency.charAt(0).toUpperCase() + task.frequency.slice(1)}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
           </div>
         </div>
 
@@ -1678,8 +791,8 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-purple-500" />
             </div>
             <div className="p-4">
-              <div className="text-3xl font-bold text-purple-700">12</div>
-              <p className="text-xs text-purple-600">+2 new staff this month</p>
+              <div className="text-3xl font-bold text-purple-700">{departmentData.activeStaff}</div>
+              <p className="text-xs text-purple-600">Total staff in Master Sheet Col C</p>
             </div>
           </div>
 
@@ -1690,18 +803,18 @@ export default function AdminDashboard() {
             </div>
             <div className="p-4">
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-indigo-700">73.4%</div>
+                <div className="text-3xl font-bold text-indigo-700">{departmentData.completionRate}%</div>
                 <div className="flex items-center space-x-2">
                   <span className="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
-                  <span className="text-xs text-gray-600">On Time: 65.2%</span>
+                  <span className="text-xs text-gray-600">Completed: {departmentData.completedTasks}</span>
                   <span className="inline-block w-3 h-3 bg-amber-500 rounded-full"></span>
-                  <span className="text-xs text-gray-600">Late: 8.2%</span>
+                  <span className="text-xs text-gray-600">Total: {departmentData.totalTasks}</span>
                 </div>
               </div>
               <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
                 <div
                   className="h-full bg-gradient-to-r from-green-500 to-amber-500 rounded-full"
-                  style={{ width: "73.4%" }}
+                  style={{ width: `${departmentData.completionRate}%` }}
                 ></div>
               </div>
             </div>
@@ -1782,56 +895,44 @@ export default function AdminDashboard() {
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div className="space-y-2">
                       <div className="text-sm font-medium text-purple-600">Total Tasks Assigned</div>
-                      <div className="text-3xl font-bold text-purple-700">{totalTasks}</div>
+                      <div className="text-3xl font-bold text-purple-700">{departmentData.totalTasks}</div>
                     </div>
                     <div className="space-y-2">
-                      <div className="text-sm font-medium text-purple-600">Tasks Completed On Time</div>
-                      <div className="text-3xl font-bold text-purple-700">{completedTasks}</div>
+                      <div className="text-sm font-medium text-purple-600">Tasks Completed</div>
+                      <div className="text-3xl font-bold text-purple-700">{departmentData.completedTasks}</div>
                     </div>
                     <div className="space-y-2">
-                      <div className="text-sm font-medium text-purple-600">Tasks Still Pending</div>
-                      <div className="text-3xl font-bold text-purple-700">{pendingTasks}</div>
+                      <div className="text-sm font-medium text-purple-600">Tasks Pending/Overdue</div>
+                      <div className="text-3xl font-bold text-purple-700">{departmentData.pendingTasks + departmentData.overdueTasks}</div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-purple-700">Task Completion by Frequency</h3>
-                    <div className="grid gap-4 md:grid-cols-4">
-                      <div className="rounded-lg border border-purple-200 bg-white">
-                        <div className="p-4 pb-2 bg-gradient-to-r from-blue-50 to-blue-100">
-                          <h4 className="text-sm text-blue-700">Daily Tasks</h4>
+                    <h3 className="text-lg font-medium text-purple-700">Department Performance</h3>
+                    <div className="grid gap-4 md:grid-cols-1">
+                      <div className="rounded-lg border border-purple-200 bg-white p-4">
+                        <h4 className="text-sm font-medium text-purple-700 mb-2">Completion Rate</h4>
+                        <div className="flex items-center gap-4">
+                          <div className="text-2xl font-bold text-purple-700">{departmentData.completionRate}%</div>
+                          <div className="flex-1">
+                            <div className="w-full h-6 bg-gray-200 rounded-full">
+                              <div 
+                                className="h-full rounded-full flex items-center justify-end px-3 text-xs font-medium text-white"
+                                style={{ 
+                                  width: `${departmentData.completionRate}%`,
+                                  background: `linear-gradient(to right, #10b981 ${departmentData.completionRate * 0.8}%, #f59e0b ${departmentData.completionRate * 0.8}%)` 
+                                }}
+                              >
+                                {departmentData.completionRate}%
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="p-4">
-                          <div className="text-2xl font-bold text-blue-700">85%</div>
-                          <p className="text-xs text-blue-600">Completion rate</p>
-                        </div>
-                      </div>
-                      <div className="rounded-lg border border-purple-200 bg-white">
-                        <div className="p-4 pb-2 bg-gradient-to-r from-purple-50 to-purple-100">
-                          <h4 className="text-sm text-purple-700">Weekly Tasks</h4>
-                        </div>
-                        <div className="p-4">
-                          <div className="text-2xl font-bold text-purple-700">78%</div>
-                          <p className="text-xs text-purple-600">Completion rate</p>
-                        </div>
-                      </div>
-                      <div className="rounded-lg border border-purple-200 bg-white">
-                        <div className="p-4 pb-2 bg-gradient-to-r from-orange-50 to-orange-100">
-                          <h4 className="text-sm text-orange-700">Monthly Tasks</h4>
-                        </div>
-                        <div className="p-4">
-                          <div className="text-2xl font-bold text-orange-700">72%</div>
-                          <p className="text-xs text-orange-600">Completion rate</p>
-                        </div>
-                      </div>
-                      <div className="rounded-lg border border-purple-200 bg-white">
-                        <div className="p-4 pb-2 bg-gradient-to-r from-emerald-50 to-emerald-100">
-                          <h4 className="text-sm text-emerald-700">Yearly Tasks</h4>
-                        </div>
-                        <div className="p-4">
-                          <div className="text-2xl font-bold text-emerald-700">90%</div>
-                          <p className="text-xs text-emerald-600">Completion rate</p>
-                        </div>
+                        <p className="text-xs text-purple-600 mt-2">
+                          {selectedMasterOption !== "Select Department" ? 
+                            `${departmentData.completedTasks} of ${departmentData.totalTasks} tasks completed in ${selectedMasterOption}` : 
+                            "Select a department to see completion rate"}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1848,73 +949,95 @@ export default function AdminDashboard() {
               </div>
               <div className="p-4">
                 <div className="space-y-8">
-                  <div className="rounded-md border border-green-200">
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
-                      <h3 className="text-lg font-medium text-green-700">Top Performers</h3>
-                      <p className="text-sm text-green-600">Staff with highest task completion rates</p>
-                    </div>
-                    <div className="p-4">
-                      <div className="space-y-4">
-                        {[
-                          { name: "John Doe", rate: 95, tasks: 42 },
-                          { name: "Jane Smith", rate: 92, tasks: 38 },
-                          { name: "Robert Johnson", rate: 88, tasks: 35 },
-                        ].map((staff, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-3 border border-green-100 rounded-md bg-green-50"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
-                                <span className="text-sm font-medium text-white">{staff.name.charAt(0)}</span>
+                  {departmentData.staffMembers.length > 0 ? (
+                    <>
+                      <div className="rounded-md border border-green-200">
+                        <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
+                          <h3 className="text-lg font-medium text-green-700">Top Performers</h3>
+                          <p className="text-sm text-green-600">Staff with highest task completion rates</p>
+                        </div>
+                        <div className="p-4">
+                          <div className="space-y-4">
+                            {departmentData.staffMembers
+                              .filter(staff => staff.progress >= 70)
+                              .sort((a, b) => b.progress - a.progress)
+                              .slice(0, 3)
+                              .map((staff) => (
+                                <div
+                                  key={staff.id}
+                                  className="flex items-center justify-between p-3 border border-green-100 rounded-md bg-green-50"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
+                                      <span className="text-sm font-medium text-white">{staff.name.charAt(0)}</span>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-green-700">{staff.name}</p>
+                                      <p className="text-xs text-green-600">{staff.totalTasks} tasks assigned</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-lg font-bold text-green-600">{staff.progress}%</div>
+                                </div>
+                              ))
+                            }
+                            {departmentData.staffMembers.filter(staff => staff.progress >= 70).length === 0 && (
+                              <div className="text-center p-4 text-gray-500">
+                                <p>No staff members with high completion rates found.</p>
                               </div>
-                              <div>
-                                <p className="font-medium text-green-700">{staff.name}</p>
-                                <p className="text-xs text-green-600">{staff.tasks} tasks assigned</p>
-                              </div>
-                            </div>
-                            <div className="text-lg font-bold text-green-600">{staff.rate}%</div>
+                            )}
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="rounded-md border border-red-200">
-                    <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 border-b border-red-200">
-                      <h3 className="text-lg font-medium text-red-700">Needs Improvement</h3>
-                      <p className="text-sm text-red-600">Staff with lower task completion rates</p>
-                    </div>
-                    <div className="p-4">
-                      <div className="space-y-4">
-                        {[
-                          { name: "Michael Wilson", rate: 65, tasks: 28 },
-                          { name: "Emily Davis", rate: 70, tasks: 32 },
-                        ].map((staff, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-3 border border-red-100 rounded-md bg-red-50"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
-                                <span className="text-sm font-medium text-white">{staff.name.charAt(0)}</span>
+                      <div className="rounded-md border border-red-200">
+                        <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 border-b border-red-200">
+                          <h3 className="text-lg font-medium text-red-700">Needs Improvement</h3>
+                          <p className="text-sm text-red-600">Staff with lower task completion rates</p>
+                        </div>
+                        <div className="p-4">
+                          <div className="space-y-4">
+                            {departmentData.staffMembers
+                              .filter(staff => staff.progress < 70)
+                              .sort((a, b) => a.progress - b.progress)
+                              .slice(0, 3)
+                              .map((staff) => (
+                                <div
+                                  key={staff.id}
+                                  className="flex items-center justify-between p-3 border border-red-100 rounded-md bg-red-50"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center">
+                                      <span className="text-sm font-medium text-white">{staff.name.charAt(0)}</span>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-red-700">{staff.name}</p>
+                                      <p className="text-xs text-red-600">{staff.totalTasks} tasks assigned</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-lg font-bold text-red-600">{staff.progress}%</div>
+                                </div>
+                              ))
+                            }
+                            {departmentData.staffMembers.filter(staff => staff.progress < 70).length === 0 && (
+                              <div className="text-center p-4 text-gray-500">
+                                <p>No staff members with low completion rates found.</p>
                               </div>
-                              <div>
-                                <p className="font-medium text-red-700">{staff.name}</p>
-                                <p className="text-xs text-red-600">{staff.tasks} tasks assigned</p>
-                              </div>
-                            </div>
-                            <div className="text-lg font-bold text-red-600">{staff.rate}%</div>
+                            )}
                           </div>
-                        ))}
+                        </div>
                       </div>
+                    </>
+                  ) : (
+                    <div className="text-center p-8 text-gray-500">
+                      <p>No staff data available. Please select a department from the dropdown.</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
+    </AdminLayout>
   )
 }

@@ -7,30 +7,30 @@ import AdminDashboard from "./pages/admin/Dashboard"
 import AdminAssignTask from "./pages/admin/AssignTask"
 import AllTasks from "./pages/admin/AllTasks"
 import DataPage from "./pages/admin/DataPage"
-import AdminLayout from "./components/layout/AdminLayout"
+import AdminDataPage from "./pages/admin/admin-data-page"
 import "./index.css"
 
 // Auth wrapper component to protect routes
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const username = sessionStorage.getItem('username');
-  const isAdmin = username?.toLowerCase() === 'admin';
-  
+  const username = sessionStorage.getItem("username")
+  const userRole = sessionStorage.getItem("role")
+
   // If no user is logged in, redirect to login
   if (!username) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />
   }
-  
-  // If this is an admin-only route and user is not admin, redirect to all tasks
-  if (allowedRoles.includes('admin') && !allowedRoles.includes('user') && !isAdmin) {
-    return <Navigate to="/dashboard/tasks" replace />;
+
+  // If this is an admin-only route and user is not admin, redirect to tasks
+  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/dashboard/admin" replace />
   }
-  
-  return children;
-};
+
+  return children
+}
 
 function App() {
   const [darkMode, setDarkMode] = useState(false)
-  
+
   useEffect(() => {
     // Check for user preference
     if (
@@ -44,7 +44,7 @@ function App() {
       document.documentElement.classList.remove("dark")
     }
   }, [])
-  
+
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
     if (darkMode) {
@@ -55,71 +55,65 @@ function App() {
       localStorage.theme = "dark"
     }
   }
-  
+
   return (
     <Router>
       <Routes>
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        
+
         {/* Login route */}
         <Route path="/login" element={<LoginPage />} />
-        
+
         {/* Dashboard redirect */}
-        <Route path="/dashboard" element={<Navigate to="/dashboard/tasks" replace />} />
-        
-        {/* Admin-only routes */}
-        <Route 
-          path="/dashboard/admin" 
+        <Route path="/dashboard" element={<Navigate to="/dashboard/admin" replace />} />
+
+        {/* Admin & User Dashboard route */}
+        <Route
+          path="/dashboard/admin"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-                <AdminDashboard />
-              </AdminLayout>
+            <ProtectedRoute>
+              <AdminDashboard darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="/dashboard/assign-task" 
+
+        {/* Assign Task route - only for admin */}
+        <Route
+          path="/dashboard/assign-task"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-                <AdminAssignTask />
-              </AdminLayout>
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminAssignTask darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Data routes */}
-        <Route 
-          path="/dashboard/data/:category" 
+        <Route
+          path="/dashboard/data/:category"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute>
               <DataPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        {/* All users can access tasks page */}
-        <Route 
-          path="/dashboard/tasks" 
+
+        {/* Specific route for Admin Data Page */}
+        <Route
+          path="/dashboard/data/admin"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'user']}>
-              <AdminLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-                <AllTasks />
-              </AdminLayout>
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDataPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Backward compatibility redirects */}
         <Route path="/admin/*" element={<Navigate to="/dashboard/admin" replace />} />
         <Route path="/admin/dashboard" element={<Navigate to="/dashboard/admin" replace />} />
         <Route path="/admin/assign-task" element={<Navigate to="/dashboard/assign-task" replace />} />
-        <Route path="/admin/tasks" element={<Navigate to="/dashboard/tasks" replace />} />
         <Route path="/admin/data/:category" element={<Navigate to="/dashboard/data/:category" replace />} />
-        <Route path="/user/*" element={<Navigate to="/dashboard/tasks" replace />} />
+        <Route path="/user/*" element={<Navigate to="/dashboard/admin" replace />} />
       </Routes>
     </Router>
   )

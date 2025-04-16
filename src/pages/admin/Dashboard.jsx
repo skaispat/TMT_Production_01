@@ -593,7 +593,7 @@ const getTasksByView = (view) => {
             <select
               value={selectedMasterOption}
               onChange={(e) => setSelectedMasterOption(e.target.value)}
-              className="w-[180px] text-white rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-[180px] rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               disabled={isFetchingMaster}
             >
               {isFetchingMaster ? (

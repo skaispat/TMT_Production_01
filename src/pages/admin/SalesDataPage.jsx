@@ -438,7 +438,7 @@ const fetchSheetData = async () => {
                             disabled={!selectedItems.includes(sale._id)}
                             value={additionalData[sale._id] || ""}
                             onChange={(e) => setAdditionalData(prev => ({...prev, [sale._id]: e.target.value}))}
-                            className="border border-gray-300 rounded-md px-20 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            className="border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Enter comments for Column O"
                           />
                         </td>

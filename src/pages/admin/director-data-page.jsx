@@ -454,7 +454,7 @@ const parseDateFromDDMMYYYY = (dateStr) => {
                             disabled={!selectedItems.includes(account._id)}
                             value={additionalData[account._id] || ""}
                             onChange={(e) => setAdditionalData(prev => ({...prev, [account._id]: e.target.value}))}
-                            className="border border-gray-300 rounded-md px-20 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            className="border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
                             placeholder="Enter comments for Column O"
                           />
                         </td>

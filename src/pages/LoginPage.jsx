@@ -147,19 +147,19 @@ if (isAdmin) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-purple-950 p-4">
-      <div className="w-full max-w-md shadow-lg border border-blue-200 dark:border-purple-800 rounded-lg bg-white dark:bg-gray-800">
-        <div className="space-y-1 p-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-t-lg">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+      <div className="w-full max-w-md shadow-lg border border-blue-200 rounded-lg bg-white">
+        <div className="space-y-1 p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-t-lg">
           <div className="flex items-center justify-center mb-2">
-            <i className="fas fa-clipboard-list h-8 w-8 text-blue-600 dark:text-blue-400 mr-2"></i>
-            <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-300">Checklist & Delegation</h2>
+            <i className="fas fa-clipboard-list h-8 w-8 text-blue-600 mr-2"></i>
+            <h2 className="text-2xl font-bold text-blue-700">Checklist & Delegation</h2>
           </div>
-          <p className="text-center text-blue-600 dark:text-blue-400">Login to access your tasks and delegations</p>
+          <p className="text-center text-blue-600">Login to access your tasks and delegations</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="space-y-2">
-            <label htmlFor="username" className="flex items-center text-blue-700 dark:text-blue-300">
+            <label htmlFor="username" className="flex items-center text-blue-700">
               <i className="fas fa-user h-4 w-4 mr-2"></i>
               Username
             </label>
@@ -176,7 +176,7 @@ if (isAdmin) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="flex items-center text-blue-700 dark:text-blue-300">
+            <label htmlFor="password" className="flex items-center text-blue-700">
               <i className="fas fa-key h-4 w-4 mr-2"></i>
               Password
             </label>
@@ -192,7 +192,7 @@ if (isAdmin) {
             />
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 -mx-4 -mb-4 mt-4 rounded-b-lg">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 -mx-4 -mb-4 mt-4 rounded-b-lg">
             <button
               type="submit"
               className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-md font-medium"

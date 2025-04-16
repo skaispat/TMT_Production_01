@@ -336,7 +336,7 @@ const fetchSheetData = async () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Account Data</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Purchase Data</h1>
 
           <div className="flex space-x-4">
             <div className="relative">

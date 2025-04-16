@@ -171,7 +171,7 @@ if (isAdmin) {
               required
               value={formData.username}
               onChange={handleChange}
-              className="w-full text-white px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -188,7 +188,7 @@ if (isAdmin) {
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 text-white py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 

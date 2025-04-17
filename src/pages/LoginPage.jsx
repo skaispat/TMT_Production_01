@@ -202,6 +202,17 @@ if (isAdmin) {
             </button>
           </div>
         </form>
+        <div className="fixed left-0 right-0 bottom-0 py-1 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center text-sm shadow-md z-10">
+  <a
+    href="https://www.botivate.in/" // Replace with actual URL
+    target="_blank"
+    rel="noopener noreferrer"
+    className="hover:underline"
+  >
+    Powered by-<span className="font-semibold">Botivate</span>
+  </a>
+</div>
+
       </div>
 
       {/* Toast Notification */}

@@ -378,7 +378,14 @@ const getAccessibleRoutes = () => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gradient-to-br from-blue-50 to-purple-50">
           {children}
           <div className="fixed md:left-64 left-0 right-0 bottom-0 py-1 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center text-sm shadow-md z-10">
-      Powered by <span className="font-semibold">Botivate</span>
+          <a
+    href="https://www.botivate.in/" // Replace with actual URL
+    target="_blank"
+    rel="noopener noreferrer"
+    className="hover:underline"
+  >
+    Powered by-<span className="font-semibold">Botivate</span>
+  </a>
     </div>
         </main>
       </div>

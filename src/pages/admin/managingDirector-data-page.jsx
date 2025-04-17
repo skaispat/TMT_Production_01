@@ -261,76 +261,90 @@ const parseDateFromDDMMYYYY = (dateStr) => {
   }
 
   // Handle submit selected items  
-  const handleSubmit = async () => {
-    if (selectedItems.length === 0) {
-      alert("Please select at least one item to submit") 
-      return
-    }
-
-    setIsSubmitting(true)
-    
-    try {
-      // Get today's date formatted as DD/MM/YYYY for column M
-      const today = new Date()
-      const todayFormatted = formatDateToDDMMYYYY(today)
-      
-      const submissionData = await Promise.all(selectedItems.map(async (id) => {
-        const item = accountData.find(account => account._id === id)
-        let imageData = null
-        
-        // If there's an image and it's a file (not a URL), convert to base64
-        if (item.image instanceof File) {
-          imageData = await fileToBase64(item.image)
-        }
-        
-        return {
-          taskId: id,
-          rowIndex: item._rowIndex,
-          additionalInfo: additionalData[id] || "",
-          imageData: imageData,
-          folderId: DRIVE_FOLDER_ID,
-          // Add today's date for column M (submission date)
-          todayDate: todayFormatted
-        }
-      }))
-      
-      const formData = new FormData()
-      formData.append('sheetName', 'MANAGING DIRECTOR')
-      formData.append('action', 'updateSalesData')
-      formData.append('rowData', JSON.stringify(submissionData))
-      
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: formData
-      })
-
-      const result = await response.json()
-      
-      if (result.success) {
-        setAccountData(prev => prev.map(item =>
-          selectedItems.includes(item._id)
-            ? {...item, status: "completed", image: null}
-            : item
-        ))
-        
-        setSuccessMessage(`Successfully processed ${selectedItems.length} account records! Columns M, O and P updated.`)
-        setSelectedItems([])
-        setAdditionalData({})
-        
-        // Refresh data to see updated image URLs
-        setTimeout(() => {
-          fetchSheetData()
-        }, 2000)
-      } else {
-        throw new Error(result.error || "Submission failed")
-      }
-    } catch (error) {
-      console.error("Submission error:", error)
-      alert("Failed to submit account records: " + error.message)
-    } finally {
-      setIsSubmitting(false)
-    }
+  // Handle submit selected items  
+const handleSubmit = async () => {
+  if (selectedItems.length === 0) {
+    alert("Please select at least one item to submit") 
+    return
   }
+
+  // Check if any selected item requires an image but doesn't have one
+  const missingRequiredImages = selectedItems.filter(id => {
+    const item = accountData.find(account => account._id === id)
+    // Check if column K (index 10) has "YES" value and no image is uploaded
+    const requiresAttachment = item['col10'] && item['col10'].toUpperCase() === "YES"
+    return requiresAttachment && !item.image
+  })
+
+  if (missingRequiredImages.length > 0) {
+    alert(`Please upload images for all required attachments. ${missingRequiredImages.length} item(s) are missing required images.`)
+    return
+  }
+
+  setIsSubmitting(true)
+  
+  try {
+    // Get today's date formatted as DD/MM/YYYY for column M
+    const today = new Date()
+    const todayFormatted = formatDateToDDMMYYYY(today)
+    
+    const submissionData = await Promise.all(selectedItems.map(async (id) => {
+      const item = accountData.find(account => account._id === id)
+      let imageData = null
+      
+      // If there's an image and it's a file (not a URL), convert to base64
+      if (item.image instanceof File) {
+        imageData = await fileToBase64(item.image)
+      }
+      
+      return {
+        taskId: id,
+        rowIndex: item._rowIndex,
+        additionalInfo: additionalData[id] || "",
+        imageData: imageData,
+        folderId: DRIVE_FOLDER_ID,
+        // Add today's date for column M (submission date)
+        todayDate: todayFormatted
+      }
+    }))
+    
+    const formData = new FormData()
+    formData.append('sheetName', 'MANAGING DIRECTOR')
+    formData.append('action', 'updateSalesData')
+    formData.append('rowData', JSON.stringify(submissionData))
+    
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    })
+
+    const result = await response.json()
+    
+    if (result.success) {
+      setAccountData(prev => prev.map(item =>
+        selectedItems.includes(item._id)
+          ? {...item, status: "completed", image: null}
+          : item
+      ))
+      
+      setSuccessMessage(`Successfully processed ${selectedItems.length} account records! Columns M, O and P updated.`)
+      setSelectedItems([])
+      setAdditionalData({})
+      
+      // Refresh data to see updated image URLs
+      setTimeout(() => {
+        fetchSheetData()
+      }, 2000)
+    } else {
+      throw new Error(result.error || "Submission failed")
+    }
+  } catch (error) {
+    console.error("Submission error:", error)
+    alert("Failed to submit account records: " + error.message)
+  } finally {
+    setIsSubmitting(false)
+  }
+}
   
   return (
     <AdminLayout>
@@ -459,43 +473,46 @@ const parseDateFromDDMMYYYY = (dateStr) => {
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap bg-green-50">
-                          {account.image ? (
-                            <div className="flex items-center">
-                              <img
-                                src={typeof account.image === 'string' ? account.image : URL.createObjectURL(account.image)}
-                                alt="Receipt"
-                                className="h-10 w-10 object-cover rounded-md mr-2"
-                              />
-                              <div className="flex flex-col">
-                                <span className="text-xs text-gray-500">
-                                  {account.image instanceof File ? account.image.name : "Uploaded Receipt"}
-                                </span>
-                                {account.image instanceof File ? (
-                                  <span className="text-xs text-green-600">Ready to upload</span>
-                                ) : (
-                                  <button
-                                    className="text-xs text-purple-600 hover:text-purple-800"
-                                    onClick={() => window.open(account.image, "_blank")}
-                                  >
-                                    View Full Image
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <label className="flex items-center cursor-pointer text-purple-600 hover:text-purple-800">
-                              <Upload className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Upload Receipt Image</span>
-                              <input
-                                type="file" 
-                                className="hidden"
-                                accept="image/*"
-                                onChange={(e) => handleImageUpload(account._id, e)}
-                                disabled={!selectedItems.includes(account._id)}
-                              />
-                            </label>
-                          )}
-                        </td>
+  {account.image ? (
+    <div className="flex items-center">
+      <img
+        src={typeof account.image === 'string' ? account.image : URL.createObjectURL(account.image)}
+        alt="Receipt"
+        className="h-10 w-10 object-cover rounded-md mr-2"
+      />
+      <div className="flex flex-col">
+        <span className="text-xs text-gray-500">
+          {account.image instanceof File ? account.image.name : "Uploaded Receipt"}
+        </span>
+        {account.image instanceof File ? (
+          <span className="text-xs text-green-600">Ready to upload</span>
+        ) : (
+          <button
+            className="text-xs text-purple-600 hover:text-purple-800"
+            onClick={() => window.open(account.image, "_blank")}
+          >
+            View Full Image
+          </button>
+        )}
+      </div>
+    </div>
+  ) : (
+    <label className={`flex items-center cursor-pointer ${account['col10']?.toUpperCase() === "YES" ? "text-red-600 font-medium" : "text-purple-600"} hover:text-purple-800`}>
+      <Upload className="h-4 w-4 mr-1" />
+      <span className="text-xs">
+        {account['col10']?.toUpperCase() === "YES" ? "Required Upload" : "Upload Receipt Image"}
+        {account['col10']?.toUpperCase() === "YES" && <span className="text-red-500 ml-1">*</span>}
+      </span>
+      <input
+        type="file" 
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => handleImageUpload(account._id, e)}
+        disabled={!selectedItems.includes(account._id)}
+      />
+    </label>
+  )}
+</td>
                       </tr>
                     ))
                   ) : (

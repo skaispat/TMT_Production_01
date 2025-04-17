@@ -81,13 +81,41 @@ function SalesDataPage() {
 
   // Fetch sheet data and headers
 // Add this function with the existing utility functions at the top of the component
-// Parse DD/MM/YYYY to Date object
+// Parse date from DD/MM/YYYY format
 const parseDateFromDDMMYYYY = (dateStr) => {
   if (!dateStr || typeof dateStr !== 'string') return null
   const parts = dateStr.split('/')
   if (parts.length !== 3) return null
   return new Date(parts[2], parts[1] - 1, parts[0])
 }
+
+// Custom date sorting function
+const sortDateWise = (a, b) => {
+  // Ensure we're looking at column H (index 7)
+  const dateStrA = a['col7'] || ''
+  const dateStrB = b['col7'] || ''
+
+  const dateA = parseDateFromDDMMYYYY(dateStrA)
+  const dateB = parseDateFromDDMMYYYY(dateStrB)
+
+  // Handle cases where dates might be null or invalid
+  if (!dateA) return 1
+  if (!dateB) return -1
+
+  // Compare dates directly
+  return dateA.getTime() - dateB.getTime()
+}
+
+// Update filteredSalesData calculation
+const filteredSalesData = searchTerm
+  ? salesData
+      .filter(sale => 
+        Object.values(sale).some(value => 
+          value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )  
+      )
+      .sort(sortDateWise)
+  : salesData.sort(sortDateWise)
 
 const fetchSheetData = async () => {
   try {
@@ -199,13 +227,13 @@ const fetchSheetData = async () => {
     fetchSheetData()
   }, [])
 
-  const filteredSalesData = searchTerm
-    ? salesData.filter(sale => 
-        Object.values(sale).some(value => 
-          value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )  
-      )
-    : salesData
+  // const filteredSalesData = searchTerm
+  //   ? salesData.filter(sale => 
+  //       Object.values(sale).some(value => 
+  //         value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  //       )  
+  //     )
+  //   : salesData
 
   const handleSelectItem = (id) => {
     setSelectedItems(prev => {

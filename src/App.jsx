@@ -8,6 +8,7 @@ import AdminAssignTask from "./pages/admin/AssignTask"
 // import AllTasks from "./pages/admin/AllTasks"
 import DataPage from "./pages/admin/DataPage"
 import AdminDataPage from "./pages/admin/admin-data-page"
+import AccountDataPage from "./pages/delegation"
 import "./index.css"
 
 // Auth wrapper component to protect routes
@@ -84,6 +85,16 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminAssignTask />
+            </ProtectedRoute>
+          }
+        />
+
+         {/* Delegation route for user */}
+         <Route
+          path="/dashboard/delegation"
+          element={
+            <ProtectedRoute>
+              <AccountDataPage/>
             </ProtectedRoute>
           }
         />

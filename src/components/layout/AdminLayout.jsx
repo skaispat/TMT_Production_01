@@ -42,6 +42,7 @@ export default function AdminLayout({ children, darkMode, toggleDarkMode }) {
     { id: "service", name: "Service", link: "/dashboard/data/service" },
     { id: "account", name: "Account", link: "/dashboard/data/account" },
     { id: "warehouse", name: "Warehouse", link: "/dashboard/data/warehouse" },
+    // { id: "delegation", name: "Delegation", link: "/dashboard/data/delegation" },
     { id: "purchase", name: "Purchase", link: "/dashboard/data/purchase" },
     { id: "director", name: "Director", link: "/dashboard/data/director" },
     { id: "managing-director", name: "Managing Director", link: "/dashboard/data/managing-director" },
@@ -77,6 +78,13 @@ export default function AdminLayout({ children, darkMode, toggleDarkMode }) {
       label: "Assign Task",
       icon: CheckSquare,
       active: location.pathname === "/dashboard/assign-task",
+      showFor: ["admin"] // Only show for admin
+    },
+    {
+      href: "/dashboard/delegation",
+      label: "Delegation",
+      icon: ClipboardList,
+      active: location.pathname === "/dashboard/delegation",
       showFor: ["admin"] // Only show for admin
     },
     {

@@ -5,9 +5,9 @@ import { CheckCircle2, Upload, X, Search } from "lucide-react"
 import AdminLayout from "../../components/layout/AdminLayout"
 
 // Google Apps Script URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAAyUM9m_Oe_6XAmWYIgO0ENNXgt9ox8vBWwnB4f87Lf883RGvBi4xOL9kxLyDq1dtqA/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec"
 // Google Drive folder ID
-const DRIVE_FOLDER_ID = "1TBpIcv5bbAsmlje7lpnPFpJRDY5nekTE"
+const DRIVE_FOLDER_ID = "1TzjAIpRAoz017MfzZ0gZaN-v5jyKtg7E"
 
 function AccountDataPage() {
   const [accountData, setAccountData] = useState([])
@@ -116,11 +116,10 @@ const filteredAccountData = searchTerm
       )
       .sort(sortDateWise)
   : accountData.sort(sortDateWise)
-
 const fetchSheetData = async () => {
   try {
     setLoading(true);
-    const response = await fetch(`https://docs.google.com/spreadsheets/d/1jOBkMxcHrusTlAV9l21JN-B-5QWq1dDyj3-0kxbK6ik/gviz/tq?tqx=out:json&sheet=WAREHOUSE`);
+    const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=WAREHOUSE`);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch data: ${response.status}`);
@@ -142,7 +141,13 @@ const fetchSheetData = async () => {
       type: col.type
     })).filter(header => header.label !== '');
     
-    setSheetHeaders(headers);
+    // Modify the headers - rename column H to "Task End Date"
+    const modifiedHeaders = [...headers];
+    if (modifiedHeaders[7]) {
+      modifiedHeaders[7].label = "Task End Date";
+    }
+    
+    setSheetHeaders(modifiedHeaders);
     
     // Get today and tomorrow's dates
     const today = new Date()
@@ -290,7 +295,7 @@ const fetchSheetData = async () => {
   }
 
   // Handle submit selected items  
-// Handle submit selected items  
+  // Handle submit selected items  
 const handleSubmit = async () => {
   if (selectedItems.length === 0) {
     alert("Please select at least one item to submit") 
@@ -379,7 +384,7 @@ const handleSubmit = async () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Warehouse Data</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Purchase Data</h1>
 
           <div className="flex space-x-4">
             <div className="relative">
@@ -416,7 +421,7 @@ const handleSubmit = async () => {
         
         <div className="rounded-lg border border-purple-200 shadow-md bg-white overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100 p-4">
-            <h2 className="text-purple-700 font-medium">Warehouse Records</h2>
+            <h2 className="text-purple-700 font-medium">Purchase Records</h2>
             <p className="text-purple-600 text-sm">
               Showing today and tomorrow's records with pending submissions
             </p>
@@ -451,8 +456,25 @@ const handleSubmit = async () => {
                         }}
                       />
                     </th>
-                    {/* Render headers for columns B to K */}
-                    {sheetHeaders.slice(1, 11).map((header) => (
+                    {/* Render headers for columns B to G */}
+                    {sheetHeaders.slice(1, 7).map((header) => (
+                      <th 
+                        key={header.id} 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {header.label}
+                      </th>
+                    ))}
+                    {/* Column - Task Given Date */}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Task Given Date
+                    </th>
+                    {/* Column H - Task End Date (renamed from original) */}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {sheetHeaders[7]?.label || "Task End Date"}
+                    </th>
+                    {/* Render headers for columns I to K */}
+                    {sheetHeaders.slice(8, 11).map((header) => (
                       <th 
                         key={header.id} 
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -483,8 +505,22 @@ const handleSubmit = async () => {
                             onChange={() => handleSelectItem(account._id)}
                           />
                         </td>
-                        {/* Render data for columns B to K */}
-                        {sheetHeaders.slice(1, 11).map((header) => (
+                        {/* Render data for columns B to G */}
+                        {sheetHeaders.slice(1, 7).map((header) => (
+                          <td key={header.id} className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {account[header.id] || '—'}
+                            </div>
+                          </td>
+                        ))}
+                        {/* Column - Task Given Date (data from column 0) */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {account['col0'] || '—'}
+                          </div>
+                        </td>
+                        {/* Render data for column H to K */}
+                        {sheetHeaders.slice(7, 11).map((header) => (
                           <td key={header.id} className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {account[header.id] || '—'}

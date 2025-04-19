@@ -205,7 +205,7 @@ const filterTasksByDateRange = () => {
   const fetchMasterSheetColumnA = async () => {
     try {
       setIsFetchingMaster(true)
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/1jOBkMxcHrusTlAV9l21JN-B-5QWq1dDyj3-0kxbK6ik/gviz/tq?tqx=out:json&sheet=MASTER`)
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=MASTER`)
       
       if (!response.ok) {
         throw new Error(`Failed to fetch master sheet data: ${response.status}`)
@@ -272,7 +272,7 @@ const filterTasksByDateRange = () => {
     
     try {
       setIsFetchingMaster(true);
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/1jOBkMxcHrusTlAV9l21JN-B-5QWq1dDyj3-0kxbK6ik/gviz/tq?tqx=out:json&sheet=${sheetName}`);
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=${sheetName}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch ${sheetName} sheet data: ${response.status}`);

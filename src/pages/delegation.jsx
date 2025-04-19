@@ -16,6 +16,8 @@ function SalesDataPage() {
   const [successMessage, setSuccessMessage] = useState("")
   const [sheetHeaders, setSheetHeaders] = useState([])
   const [additionalData, setAdditionalData] = useState({})
+  const [statusData, setStatusData] = useState({}) // New state for status dropdown
+  const [nextTargetDate, setNextTargetDate] = useState({}) // New state for next target date
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -79,8 +81,6 @@ function SalesDataPage() {
     return dateStr;
   }
 
-  // Fetch sheet data and headers
-// Add this function with the existing utility functions at the top of the component
 // Parse date from DD/MM/YYYY format
 const parseDateFromDDMMYYYY = (dateStr) => {
   if (!dateStr || typeof dateStr !== 'string') return null
@@ -222,23 +222,27 @@ const filteredSalesData = searchTerm
     fetchSheetData()
   }, [])
 
-  // const filteredSalesData = searchTerm
-  //   ? salesData.filter(sale => 
-  //       Object.values(sale).some(value => 
-  //         value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-  //       )  
-  //     )
-  //   : salesData
-
   const handleSelectItem = (id) => {
     setSelectedItems(prev => {
       const isSelected = prev.includes(id)
       if (isSelected) {
         const newAdditionalData = {...additionalData}
         delete newAdditionalData[id]
+        
+        const newStatusData = {...statusData}
+        delete newStatusData[id]
+        
+        const newNextTargetDate = {...nextTargetDate}
+        delete newNextTargetDate[id]
+        
         setAdditionalData(newAdditionalData)
+        setStatusData(newStatusData)
+        setNextTargetDate(newNextTargetDate)
+        
         return prev.filter(itemId => itemId !== id)
       } else {
+        // Set default status to "Done" when selecting a new item
+        setStatusData(prev => ({...prev, [id]: "Done"}))
         return [...prev, id]
       }
     })
@@ -257,6 +261,24 @@ const filteredSalesData = searchTerm
     ))
   }
 
+  // Handle next target date change
+  const handleNextTargetDateChange = (id, value) => {
+    setNextTargetDate(prev => ({...prev, [id]: value}))
+  }
+
+  // Handle status change
+  const handleStatusChange = (id, value) => {
+    setStatusData(prev => ({...prev, [id]: value}))
+    // If status is changed to "Done", clear the next target date
+    if (value === "Done") {
+      setNextTargetDate(prev => {
+        const newDates = {...prev}
+        delete newDates[id]
+        return newDates
+      })
+    }
+  }
+
   // Convert file to base64
   const fileToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -268,90 +290,141 @@ const filteredSalesData = searchTerm
   }
 
   // Handle submit selected items  
-  // Handle submit selected items  
-const handleSubmit = async () => {
-  if (selectedItems.length === 0) {
-    alert("Please select at least one item to submit") 
-    return
-  }
+  const handleSubmit = async () => {
+    if (selectedItems.length === 0) {
+      alert("Please select at least one item to submit") 
+      return
+    }
 
-  // Check if any selected item requires an image but doesn't have one
-  const missingRequiredImages = selectedItems.filter(id => {
-    const item = salesData.find(sale => sale._id === id)
-    // Check if column K (index 10) has "YES" value and no image is uploaded
-    const requiresAttachment = item['col10'] && item['col10'].toString().toUpperCase() === "YES"
-    return requiresAttachment && !item.image
-  })
-
-  if (missingRequiredImages.length > 0) {
-    alert(`Please upload images for all required attachments. ${missingRequiredImages.length} item(s) are missing required images.`)
-    return
-  }
-
-  setIsSubmitting(true)
-  
-  try {
-    // Get today's date formatted as DD/MM/YYYY for column M
-    const today = new Date()
-    const todayFormatted = formatDateToDDMMYYYY(today)
-    
-    const submissionData = await Promise.all(selectedItems.map(async (id) => {
+    // Check if any selected item requires an image but doesn't have one
+    const missingRequiredImages = selectedItems.filter(id => {
       const item = salesData.find(sale => sale._id === id)
-      let imageData = null
-      
-      // If there's an image and it's a file (not a URL), convert to base64
-      if (item.image instanceof File) {
-        imageData = await fileToBase64(item.image)
-      }
-      
-      return {
-        taskId: id,
-        rowIndex: item._rowIndex,
-        additionalInfo: additionalData[id] || "",
-        imageData: imageData,
-        folderId: DRIVE_FOLDER_ID,
-        // Add today's date for column M (submission date)
-        todayDate: todayFormatted
-      }
-    }))
-    
-    const formData = new FormData()
-    formData.append('sheetName', 'DELEGATION')
-    formData.append('action', 'updateSalesData')
-    formData.append('rowData', JSON.stringify(submissionData))
-    
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: formData
+      // Check if column K (index 10) has "YES" value and no image is uploaded
+      const requiresAttachment = item['col10'] && item['col10'].toString().toUpperCase() === "YES"
+      return requiresAttachment && !item.image
     })
 
-    const result = await response.json()
-    
-    if (result.success) {
-      setSalesData(prev => prev.map(item =>
-        selectedItems.includes(item._id)
-          ? {...item, status: "completed", image: null}
-          : item
-      ))
-      
-      setSuccessMessage(`Successfully processed ${selectedItems.length} sales records! Columns M, O and P updated.`)
-      setSelectedItems([])
-      setAdditionalData({})
-      
-      // Refresh data to see updated image URLs
-      setTimeout(() => {
-        fetchSheetData()
-      }, 2000)
-    } else {
-      throw new Error(result.error || "Submission failed")
+    if (missingRequiredImages.length > 0) {
+      alert(`Please upload images for all required attachments. ${missingRequiredImages.length} item(s) are missing required images.`)
+      return
     }
-  } catch (error) {
-    console.error("Submission error:", error)
-    alert("Failed to submit sales records: " + error.message)
-  } finally {
-    setIsSubmitting(false)
+
+    // Check if status is selected for all items
+    const missingStatus = selectedItems.filter(id => !statusData[id])
+    if (missingStatus.length > 0) {
+      alert(`Please select a status for all selected items. ${missingStatus.length} item(s) are missing status.`)
+      return
+    }
+
+    // Check if next target date is provided for items with "Extend" status
+    const missingNextDate = selectedItems.filter(id => 
+      statusData[id] === "Extend" && !nextTargetDate[id]
+    )
+    if (missingNextDate.length > 0) {
+      alert(`Please select a next target date for all items with "Extend" status. ${missingNextDate.length} item(s) are missing target date.`)
+      return
+    }
+
+    setIsSubmitting(true)
+    
+    try {
+      // Process each selected item by inserting a new row in DELEGATION DONE
+      for (const id of selectedItems) {
+        const item = salesData.find(sale => sale._id === id);
+        let imageData = null;
+        
+        // If there's an image and it's a file (not a URL), convert to base64
+        if (item.image instanceof File) {
+          imageData = await fileToBase64(item.image);
+        }
+        
+        // Since we can't directly modify columns L, M, N, O, P (using existing methods)
+        // we'll insert a new row with all the correct data instead
+        const newRowData = [
+          '', // A - blank
+          '', // B - blank
+          '', // C - blank
+          '', // D - blank
+          '', // E - blank
+          '', // F - blank
+          '', // G - blank
+          '', // H - blank
+          '', // I - blank
+          '', // J - blank
+          '', // K - blank
+          item['col1'] || id, // L - Task ID
+          statusData[id] || "Done", // M - Status
+          nextTargetDate[id] || "", // N - Next Target Date
+          additionalData[id] || "", // O - Remarks
+          '' // P - Image URL (will be updated by the image upload)
+        ];
+        
+        // Insert the new row into DELEGATION DONE
+        const insertFormData = new FormData();
+        insertFormData.append('sheetName', 'DELEGATION DONE');
+        insertFormData.append('action', 'insert');
+        insertFormData.append('rowData', JSON.stringify(newRowData));
+        
+        const insertResponse = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: insertFormData
+        });
+        
+        const insertResult = await insertResponse.json();
+        
+        // If we have an image, upload it to the newly inserted row
+        if (imageData && insertResult.success) {
+          const imageFormData = new FormData();
+          imageFormData.append('sheetName', 'DELEGATION DONE');
+          imageFormData.append('action', 'uploadImage');
+          imageFormData.append('imageData', imageData);
+          imageFormData.append('fileName', `Task_${item['col1'] || id}_${new Date().getTime()}.jpg`);
+          imageFormData.append('folderId', DRIVE_FOLDER_ID);
+          imageFormData.append('rowIndex', insertResult.rowIndex || ""); // Use the row index of the newly inserted row
+          
+          await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: imageFormData
+          });
+        }
+        
+        // Also mark the original task as completed
+        // For the original DELEGATION sheet task
+        const updateOriginalFormData = new FormData();
+        // updateOriginalFormData.append('sheetName', 'DELEGATION');
+        updateOriginalFormData.append('action', 'updateSalesData');
+        updateOriginalFormData.append('rowData', JSON.stringify([{
+          rowIndex: item._rowIndex,
+          todayDate: formatDateToDDMMYYYY(new Date()), // Update column M with completion date
+          additionalInfo: `Completed: ${statusData[id]}`, // Update column O with status
+        }]));
+        
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: updateOriginalFormData
+        });
+      }
+      
+      // Update local state
+      setSalesData(prev => prev.filter(item => !selectedItems.includes(item._id)));
+      
+      setSuccessMessage(`Successfully processed ${selectedItems.length} sales records! Data submitted to DELEGATION DONE sheet.`);
+      setSelectedItems([]);
+      setAdditionalData({});
+      setStatusData({});
+      setNextTargetDate({});
+      
+      // Refresh data to see updated records
+      setTimeout(() => {
+        fetchSheetData();
+      }, 2000);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit sales records: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-}
   
   return (
     <AdminLayout>
@@ -421,10 +494,22 @@ const handleSubmit = async () => {
                       checked={filteredSalesData.length > 0 && selectedItems.length === filteredSalesData.length}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedItems(filteredSalesData.map(item => item._id))
+                          const allIds = filteredSalesData.map(item => item._id);
+                          setSelectedItems(allIds);
+                          
+                          // Set default status for all items
+                          const newStatusData = {};
+                          allIds.forEach(id => {
+                            newStatusData[id] = "Done";
+                          });
+                          setStatusData(prev => ({...prev, ...newStatusData}));
+                          
+                          // Clear any next target dates
+                          setNextTargetDate({});
                         } else {
-                          setSelectedItems([])
-                          setAdditionalData({})
+                          setSelectedItems([]);
+                          setAdditionalData({});
+                          setStatusData({});
                         }
                       }}
                     />
@@ -455,12 +540,20 @@ const handleSubmit = async () => {
                       {header.label}
                     </th>
                   ))}
+                  {/* New Status Column */}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50">
+                    Status
+                  </th>
+                  {/* Next Target Date Column */}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-50">
+                    Next Target Date
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-yellow-50">
                     Remarks
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50">
                     Upload Image
-                  </th>
+                  </th> */}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -500,6 +593,33 @@ const handleSubmit = async () => {
                           </div>
                         </td>
                       ))}
+                      {/* Status dropdown */}
+                      <td className="px-6 py-4 whitespace-nowrap bg-blue-50">
+                        <select
+                          disabled={!selectedItems.includes(sale._id)}
+                          value={statusData[sale._id] || "Done"}
+                          onChange={(e) => handleStatusChange(sale._id, e.target.value)}
+                          className="border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        >
+                          <option value="Done">Done</option>
+                          <option value="Extend">Extend</option>
+                        </select>
+                      </td>
+                      {/* Next Target Date */}
+                      <td className="px-6 py-4 whitespace-nowrap bg-indigo-50">
+                        <input
+                          type="date"
+                          disabled={!selectedItems.includes(sale._id) || statusData[sale._id] !== "Extend"}
+                          value={nextTargetDate[sale._id] || ""}
+                          onChange={(e) => handleNextTargetDateChange(sale._id, e.target.value)}
+                          className={`border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                            selectedItems.includes(sale._id) && statusData[sale._id] === "Extend" && !nextTargetDate[sale._id] 
+                              ? "border-red-500" 
+                              : ""
+                          }`}
+                          required={statusData[sale._id] === "Extend"}
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap bg-yellow-50">
                         <input
                           type="text"
@@ -510,52 +630,52 @@ const handleSubmit = async () => {
                           placeholder="Enter comments for Column O"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap bg-green-50">
-{sale.image ? (
-  <div className="flex items-center">
-    <img
-      src={typeof sale.image === 'string' ? sale.image : URL.createObjectURL(sale.image)}
-      alt="Receipt"
-      className="h-10 w-10 object-cover rounded-md mr-2"
-    />
-    <div className="flex flex-col">
-      <span className="text-xs text-gray-500">
-        {sale.image instanceof File ? sale.image.name : "Uploaded Receipt"}
-      </span>
-      {sale.image instanceof File ? (
-        <span className="text-xs text-green-600">Ready to upload</span>
-      ) : (
-        <button
-          className="text-xs text-purple-600 hover:text-purple-800"
-          onClick={() => window.open(sale.image, "_blank")}
-        >
-          View Full Image
-        </button>
-      )}
-    </div>
-  </div>
-) : (
-  <label className={`flex items-center cursor-pointer ${sale['col10']?.toString().toUpperCase() === "YES" ? "text-red-600 font-medium" : "text-purple-600"} hover:text-purple-800`}>
-    <Upload className="h-4 w-4 mr-1" />
-    <span className="text-xs">
-      {sale['col10']?.toString().toUpperCase() === "YES" ? "Required Upload" : "Upload Receipt Image"}
-      {sale['col10']?.toString().toUpperCase() === "YES" && <span className="text-red-500 ml-1">*</span>}
-    </span>
-    <input
-      type="file" 
-      className="hidden"
-      accept="image/*"
-      onChange={(e) => handleImageUpload(sale._id, e)}
-      disabled={!selectedItems.includes(sale._id)}
-    />
-  </label>
-)}
-</td>
+                      {/* <td className="px-6 py-4 whitespace-nowrap bg-green-50">
+                        {sale.image ? (
+                          <div className="flex items-center">
+                            <img
+                              src={typeof sale.image === 'string' ? sale.image : URL.createObjectURL(sale.image)}
+                              alt="Receipt"
+                              className="h-10 w-10 object-cover rounded-md mr-2"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-xs text-gray-500">
+                                {sale.image instanceof File ? sale.image.name : "Uploaded Receipt"}
+                              </span>
+                              {sale.image instanceof File ? (
+                                <span className="text-xs text-green-600">Ready to upload</span>
+                              ) : (
+                                <button
+                                  className="text-xs text-purple-600 hover:text-purple-800"
+                                  onClick={() => window.open(sale.image, "_blank")}
+                                >
+                                  View Full Image
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <label className={`flex items-center cursor-pointer ${sale['col10']?.toString().toUpperCase() === "YES" ? "text-red-600 font-medium" : "text-purple-600"} hover:text-purple-800`}>
+                            <Upload className="h-4 w-4 mr-1" />
+                            <span className="text-xs">
+                              {sale['col10']?.toString().toUpperCase() === "YES" ? "Required Upload" : "Upload Receipt Image"}
+                              {sale['col10']?.toString().toUpperCase() === "YES" && <span className="text-red-500 ml-1">*</span>}
+                            </span>
+                            <input
+                              type="file" 
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(sale._id, e)}
+                              disabled={!selectedItems.includes(sale._id)}
+                            />
+                          </label>
+                        )}
+                      </td> */}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={sheetHeaders.length + 3} className="px-6 py-4 text-center text-gray-500"> 
+                    <td colSpan={sheetHeaders.length + 4} className="px-6 py-4 text-center text-gray-500"> 
                       {searchTerm ? "No transactions matching your search" : "No pending sales records found for today or tomorrow"}
                     </td>
                   </tr>

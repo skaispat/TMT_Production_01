@@ -140,14 +140,7 @@ const filteredAccountData = searchTerm
         type: col.type
       })).filter(header => header.label !== '');
       
-      // Modify the headers - rename column H to "Task End Date" 
-      // and add a new column header for "Task Given Date"
-      const modifiedHeaders = [...headers];
-      if (modifiedHeaders[7]) {
-        modifiedHeaders[7].label = "Task End Date";
-      }
-      
-      setSheetHeaders(modifiedHeaders);
+      setSheetHeaders(headers);
       
       // Get today and tomorrow's dates
       const today = new Date()
@@ -456,8 +449,8 @@ const handleSubmit = async () => {
                         }}
                       />
                     </th>
-                    {/* Render headers for columns B to G */}
-                    {sheetHeaders.slice(1, 7).map((header) => (
+                    {/* Render headers for columns B to K */}
+                    {sheetHeaders.slice(1, 11).map((header) => (
                       <th 
                         key={header.id} 
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -465,24 +458,7 @@ const handleSubmit = async () => {
                         {header.label}
                       </th>
                     ))}
-                    {/* Column - Task Given Date */}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Task Given Date
-                    </th>
-                    {/* Column H - Task End Date (renamed from original) */}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {sheetHeaders[7]?.label || "Task End Date"}
-                    </th>
-                    {/* Render headers for columns I to K */}
-                    {sheetHeaders.slice(8, 11).map((header) => (
-                      <th 
-                        key={header.id} 
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        {header.label}
-                      </th>
-                    ))}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-yellow-50">
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-yellow-50">
                       Remarks
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50">
@@ -505,22 +481,8 @@ const handleSubmit = async () => {
                             onChange={() => handleSelectItem(account._id)}
                           />
                         </td>
-                        {/* Render data for columns B to G */}
-                        {sheetHeaders.slice(1, 7).map((header) => (
-                          <td key={header.id} className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {account[header.id] || '—'}
-                            </div>
-                          </td>
-                        ))}
-                        {/* Column - Task Given Date (data from column 0) */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {account['col0'] || '—'}
-                          </div>
-                        </td>
-                        {/* Render data for column H to K */}
-                        {sheetHeaders.slice(7, 11).map((header) => (
+                        {/* Render data for columns B to K */}
+                        {sheetHeaders.slice(1, 11).map((header) => (
                           <td key={header.id} className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
                               {account[header.id] || '—'}

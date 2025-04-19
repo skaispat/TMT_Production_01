@@ -121,6 +121,8 @@ export default function AssignTask() {
   const [generatedTasks, setGeneratedTasks] = useState([])
   const [showCalendar, setShowCalendar] = useState(false)
   const [accordionOpen, setAccordionOpen] = useState(false)
+  // Add this line with your other useState declarations
+const [submitStatus, setSubmitStatus] = useState({ loading: false, error: null, success: false, message: "" });
   
   // Add new state variables for dropdown options
   const [departmentOptions, setDepartmentOptions] = useState([])
@@ -490,62 +492,72 @@ const generateTasks = async () => {
 
 // Update handleSubmit function to avoid re-formatting an already formatted date
 // Update handleSubmit function to handle one-time tasks differently
+// Updated handleSubmit function with better error handling
+// Add this to your React component to handle form submission
 const handleSubmit = async (e) => {
-  e.preventDefault()
-  setIsSubmitting(true)
+  e.preventDefault();
+  setIsSubmitting(true);
+  setSubmitStatus({ loading: true, error: null, success: false });
 
   try {
     if (generatedTasks.length === 0) {
-      alert("Please generate tasks first by clicking Preview Generated Tasks")
-      setIsSubmitting(false)
-      return
+      setSubmitStatus({ 
+        loading: false, 
+        error: "Please generate tasks first by clicking Preview Generated Tasks", 
+        success: false 
+      });
+      setIsSubmitting(false);
+      return;
     }
 
     // Determine the sheet where tasks will be submitted
-    // If frequency is "one-time", use "DELEGATION" sheet, otherwise use the department sheet
     const submitSheetName = formData.frequency === "one-time" ? "DELEGATION" : formData.department;
     
     // Get the last task ID from the appropriate sheet
-    const lastTaskId = await getLastTaskId(submitSheetName)
-    let nextTaskId = lastTaskId + 1
-
-    // Current date formatted
-    const currentDate = formatDateToDDMMYYYY(new Date())
+    const lastTaskId = await getLastTaskId(submitSheetName);
+    let nextTaskId = lastTaskId + 1;
 
     // Prepare all tasks data in one array
     const allTasksData = generatedTasks.map((task, index) => ({
       timestamp: formatDateToDDMMYYYY(new Date()),
       taskId: (nextTaskId + index).toString(),
-      // Include the department field even when submitting to DELEGATION
       department: task.department,
       givenBy: task.givenBy,
       doer: task.doer,
       title: task.title,
       description: task.description,
-      dueDate: task.dueDate, // Already formatted, don't format again
+      dueDate: task.dueDate,
       frequency: task.frequency,
       enableReminders: task.enableReminders ? 'Yes' : 'No',
       requireAttachment: task.requireAttachment ? 'Yes' : 'No',
-      // currentDate: currentDate
-    }))
+    }));
 
     // Submit all tasks in one request
-    const formPayload = new FormData()
-    formPayload.append('sheetName', submitSheetName) // Use the determined sheet name
-    formPayload.append('action', 'insert')
-    formPayload.append('rowData', JSON.stringify(allTasksData))
-    formPayload.append('batchInsert', 'true')
+    const formPayload = new FormData();
+    formPayload.append('sheetName', submitSheetName);
+    formPayload.append('action', 'insert');
+    formPayload.append('rowData', JSON.stringify(allTasksData));
+    formPayload.append('batchInsert', 'true');
 
+    // Use no-cors mode to avoid CORS errors
     await fetch('https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec', {
       method: 'POST',
       body: formPayload,
       mode: 'no-cors'
-    })
+    });
+    
+    // Wait for the request to complete
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Assume success since we can't check with no-cors
+    setSubmitStatus({ 
+      loading: false, 
+      error: null, 
+      success: true,
+      message: `Successfully submitted ${generatedTasks.length} tasks to ${submitSheetName} sheet!`
+    });
 
-    // Show a success message with the appropriate sheet name
-    alert(`Successfully submitted ${generatedTasks.length} tasks to ${submitSheetName} sheet!`)
-
-    // Reset form
+    // Reset form on success
     setFormData({
       department: "",
       givenBy: "",
@@ -555,17 +567,22 @@ const handleSubmit = async (e) => {
       frequency: "daily",
       enableReminders: true,
       requireAttachment: false,
-    })
-    setSelectedDate(null)
-    setGeneratedTasks([])
-    setAccordionOpen(false)
+    });
+    setSelectedDate(null);
+    setGeneratedTasks([]);
+    setAccordionOpen(false);
+    
   } catch (error) {
-    console.error('Submission error:', error)
-    alert("Failed to assign tasks. Please try again.")
+    console.error('Submission error:', error);
+    setSubmitStatus({ 
+      loading: false, 
+      error: error.message || "Failed to assign tasks. Please try again.", 
+      success: false 
+    });
   } finally {
-    setIsSubmitting(false)
+    setIsSubmitting(false);
   }
-}
+};
 
   return (
     <AdminLayout>

@@ -539,7 +539,7 @@ const handleSubmit = async (e) => {
     await fetch('https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec', {
       method: 'POST',
       body: formPayload,
-      // mode: 'no-cors'
+      mode: 'no-cors'
     })
 
     // Show a success message with the appropriate sheet name

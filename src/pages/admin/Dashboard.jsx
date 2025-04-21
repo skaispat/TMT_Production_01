@@ -923,7 +923,7 @@ const StaffTasksTable = () => {
                 {dashboardType === "delegation" ? departmentData.completedRatingOne : departmentData.completedTasks}
               </div>
               <p className="text-xs text-green-600">
-                {dashboardType === "delegation" ? "Task completed once" : "Tasks with Column L & M filled"}
+                {dashboardType === "delegation" ? "Task completed once" : "Total completed till date"}
               </p>
             </div>
           </div>
@@ -944,7 +944,7 @@ const StaffTasksTable = () => {
                 {dashboardType === "delegation" ? departmentData.completedRatingTwo : departmentData.pendingTasks}
               </div>
               <p className="text-xs text-amber-600">
-                {dashboardType === "delegation" ? "Task completed twice" : "Tasks with Column L filled, M empty"}
+                {dashboardType === "delegation" ? "Task completed twice" : "Total pending till date"}
               </p>
             </div>
           </div>
@@ -965,7 +965,7 @@ const StaffTasksTable = () => {
                 {dashboardType === "delegation" ? departmentData.completedRatingThreePlus : departmentData.overdueTasks}
               </div>
               <p className="text-xs text-red-600">
-                {dashboardType === "delegation" ? "Task completed more then twice" : "Tasks with Column L past due date"}
+                {dashboardType === "delegation" ? "Task completed more then twice" : "Total overdue till date"}
               </p>
             </div>
           </div>

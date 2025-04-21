@@ -5,7 +5,7 @@ import { CheckCircle2, Upload, X, Search } from "lucide-react"
 import AdminLayout from "../../components/layout/AdminLayout"
 
 // Google Apps Script URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAAyUM9m_Oe_6XAmWYIgO0ENNXgt9ox8vBWwnB4f87Lf883RGvBi4xOL9kxLyDq1dtqA/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec"
 // Google Drive folder ID
 const DRIVE_FOLDER_ID = "1TzjAIpRAoz017MfzZ0gZaN-v5jyKtg7E"
 
@@ -378,7 +378,7 @@ const handleSubmit = async () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-2xl font-bold tracking-tight text-purple-500">Admin Data</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Account Data</h1>
 
           <div className="flex space-x-4">
             <div className="relative">
@@ -415,7 +415,7 @@ const handleSubmit = async () => {
         
         <div className="rounded-lg border border-purple-200 shadow-md bg-white overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100 p-4">
-            <h2 className="text-purple-700 font-medium">Admin Records</h2>
+            <h2 className="text-purple-700 font-medium">Account Records</h2>
             <p className="text-purple-600 text-sm">
               Showing today and tomorrow's records with pending submissions
             </p>

@@ -378,7 +378,7 @@ const handleSubmit = async () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Account Data</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-purple-700">Warehouse Data</h1>
 
           <div className="flex space-x-4">
             <div className="relative">
@@ -415,7 +415,7 @@ const handleSubmit = async () => {
         
         <div className="rounded-lg border border-purple-200 shadow-md bg-white overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100 p-4">
-            <h2 className="text-purple-700 font-medium">Account Records</h2>
+            <h2 className="text-purple-700 font-medium">Warehouse Records</h2>
             <p className="text-purple-600 text-sm">
               Showing today and tomorrow's records with pending submissions
             </p>

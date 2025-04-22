@@ -85,7 +85,7 @@ export default function AdminLayout({ children, darkMode, toggleDarkMode }) {
       label: "Delegation",
       icon: ClipboardList,
       active: location.pathname === "/dashboard/delegation",
-      showFor: ["admin"] // Only show for admin
+      showFor: ["admin", "user"] // Only show for admin
     },
     {
       href: "#",

@@ -38,29 +38,28 @@ const LoginPage = () => {
         const userCredentials = {}
         
         // If there's data from the sheet, process it
-       // Update the data extraction in fetchMasterData function
-if (result.success && result.data) {
-  // Log the entire response to understand its structure
-  console.log("Raw data response:", result.data);
-  
-  const usernamesCol = result.data.C || [];
-  const passwordsCol = result.data.D || [];
-  
-  console.log("Username column:", usernamesCol);
-  console.log("Password column:", passwordsCol);
-  
-  // Process all rows, including the first one
-  for (let i = 0; i < usernamesCol.length; i++) {
-    const username = String(usernamesCol[i] || '').trim().toLowerCase();
-    const password = passwordsCol[i];
-    
-    if (username && password !== undefined && password !== null && 
-        String(password).trim() !== '') {
-      userCredentials[username] = String(password).trim();
-      console.log(`Added credential for: ${username}`);
-    }
-  }
-}
+        if (result.success && result.data) {
+          // Log the entire response to understand its structure
+          console.log("Raw data response:", result.data);
+          
+          const usernamesCol = result.data.C || [];
+          const passwordsCol = result.data.D || [];
+          
+          console.log("Username column:", usernamesCol);
+          console.log("Password column:", passwordsCol);
+          
+          // Process all rows, including the first one
+          for (let i = 0; i < usernamesCol.length; i++) {
+            const username = String(usernamesCol[i] || '').trim().toLowerCase();
+            const password = passwordsCol[i];
+            
+            if (username && password !== undefined && password !== null && 
+                String(password).trim() !== '') {
+              userCredentials[username] = String(password).trim();
+              console.log(`Added credential for: ${username}`);
+            }
+          }
+        }
     
         setMasterData({ userCredentials })
         console.log("Loaded credentials from master sheet:", Object.keys(userCredentials).length)
@@ -82,6 +81,10 @@ if (result.success && result.data) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Prevent multiple submissions
+    if (isLoading) return;
+    
     setIsLoading(true)
 
     try {
@@ -105,21 +108,21 @@ if (result.success && result.data) {
           sessionStorage.setItem('username', trimmedUsername)
           
           // Determine if user is admin based on username
-      // Determine if user is admin based on username
-const isAdmin = trimmedUsername === 'admin'
-sessionStorage.setItem('role', isAdmin ? 'admin' : 'user')
+          const isAdmin = trimmedUsername === 'admin'
+          sessionStorage.setItem('role', isAdmin ? 'admin' : 'user')
           sessionStorage.setItem('department', trimmedUsername) // Store username as department for access control
           
-          // Navigate based on role
-          // When admin logs in
-if (isAdmin) {
-  navigate("/dashboard/admin")
-} else {
-  // Regular users go to admin dashboard, just like admin
-  navigate("/dashboard/admin")
-}
-          
           showToast(`Login successful. Welcome, ${trimmedUsername}!`, "success")
+          
+          // Add small delay to allow toast to show before navigation
+          setTimeout(() => {
+            if (isAdmin) {
+              navigate("/dashboard/admin")
+            } else {
+              navigate("/dashboard/admin")
+            }
+          }, 1000)
+          
           return
         }
       }
@@ -131,11 +134,11 @@ if (isAdmin) {
           "Password did not match" : 'Username not found'
       })
       showToast("Invalid username or password. Please try again.", "error")
+      setIsLoading(false) // Make sure to reset loading state on failure
     } catch (error) {
       console.error("Login Error:", error)
       showToast(`Login failed: ${error.message}. Please try again.`, "error")
-    } finally {
-      setIsLoading(false)
+      setIsLoading(false) // Make sure to reset loading state on error
     }
   }
 
@@ -172,6 +175,7 @@ if (isAdmin) {
               value={formData.username}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
             />
           </div>
 
@@ -189,13 +193,16 @@ if (isAdmin) {
               value={formData.password}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
             />
           </div>
 
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 -mx-4 -mb-4 mt-4 rounded-b-lg">
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-md font-medium"
+              className={`w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-md font-medium ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
               disabled={isLoading}
             >
               {isLoading ? "Logging in..." : "Login"}
@@ -203,15 +210,15 @@ if (isAdmin) {
           </div>
         </form>
         <div className="fixed left-0 right-0 bottom-0 py-1 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center text-sm shadow-md z-10">
-  <a
-    href="https://www.botivate.in/" // Replace with actual URL
-    target="_blank"
-    rel="noopener noreferrer"
-    className="hover:underline"
-  >
-    Powered by-<span className="font-semibold">Botivate</span>
-  </a>
-</div>
+          <a
+            href="https://www.botivate.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            Powered by-<span className="font-semibold">Botivate</span>
+          </a>
+        </div>
 
       </div>
 

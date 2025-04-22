@@ -93,11 +93,11 @@ function SalesDataPage() {
     return new Date(parts[2], parts[1] - 1, parts[0])
   }
 
-  // Custom date sorting function
+  // Custom date sorting function - MODIFIED to use Column L instead of H
   const sortDateWise = (a, b) => {
-    // Ensure we're looking at column H (index 7)
-    const dateStrA = a['col7'] || ''
-    const dateStrB = b['col7'] || ''
+    // Changed to use column L (index 11) instead of column H (index 7)
+    const dateStrA = a['col11'] || ''
+    const dateStrB = b['col11'] || ''
 
     const dateA = parseDateFromDDMMYYYY(dateStrA)
     const dateB = parseDateFromDDMMYYYY(dateStrB)
@@ -694,7 +694,7 @@ function SalesDataPage() {
                     <td className="px-6 py-4 whitespace-nowrap bg-indigo-50">
                       <div className="text-sm font-medium text-gray-900">
                         {item['col13'] || '—'}
-                      </div>
+                        </div>
                     </td>
                     {/* Column O - Remarks */}
                     <td className="px-6 py-4 whitespace-nowrap bg-yellow-50">
@@ -760,7 +760,7 @@ function SalesDataPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Task Given Date
                   </th>
-                  {/* Column H - Task End Date (renamed from original) */}
+                  {/* Column H - Task End Date (shows data from column L instead) */}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {sheetHeaders[7]?.label || "Task End Date"}
                   </th>
@@ -823,8 +823,14 @@ function SalesDataPage() {
                             {sale['col0'] || '—'}
                           </div>
                         </td>
-                        {/* Render data for column H to K */}
-                        {sheetHeaders.slice(7, 11).map((header) => (
+                        {/* Column H display - shows data from column L (index 11) */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm" style={{ color: rowTextColor }}>
+                            {sale['col11'] || '—'}
+                          </div>
+                        </td>
+                        {/* Render data for columns I to K */}
+                        {sheetHeaders.slice(8, 11).map((header) => (
                           <td key={header.id} className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm" style={{ color: rowTextColor }}>
                               {sale[header.id] || '—'}

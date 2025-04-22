@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom"
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isDataLoading, setIsDataLoading] = useState(false)
+  const [isLoginLoading, setIsLoginLoading] = useState(false)
   const [masterData, setMasterData] = useState({
     userCredentials: {} // Object where keys are usernames and values are passwords
   })
@@ -19,7 +20,7 @@ const LoginPage = () => {
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        setIsLoading(true)
+        setIsDataLoading(true)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec"
         
         // Using POST for better data handling
@@ -60,14 +61,15 @@ const LoginPage = () => {
             }
           }
         }
-    
+        
         setMasterData({ userCredentials })
         console.log("Loaded credentials from master sheet:", Object.keys(userCredentials).length)
+        console.log("Credentials map:", userCredentials) // Add this to see the actual credentials
       } catch (error) {
         console.error("Error Fetching Master Data:", error)
         showToast(`Network error: ${error.message}. Please try again later.`, "error")
       } finally {
-        setIsLoading(false)
+        setIsDataLoading(false)
       }
     }
 
@@ -81,11 +83,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Prevent multiple submissions
-    if (isLoading) return;
-    
-    setIsLoading(true)
+    setIsLoginLoading(true)
 
     try {
       const trimmedUsername = formData.username.trim().toLowerCase()
@@ -93,13 +91,16 @@ const LoginPage = () => {
 
       console.log("Login Attempt Details:")
       console.log("Entered Username:", trimmedUsername)
+      console.log("Entered Password:", trimmedPassword) // For debugging (remove in production)
       console.log("Available Credentials Count:", Object.keys(masterData.userCredentials).length)
+      console.log("Current userCredentials:", masterData.userCredentials) // For debugging
       
       // Check if the username exists in our credentials map
       if (trimmedUsername in masterData.userCredentials) {
         const correctPassword = masterData.userCredentials[trimmedUsername]
         
         console.log("Found user in credentials map")
+        console.log("Expected Password:", correctPassword) // For debugging (remove in production)
         console.log("Password Match:", correctPassword === trimmedPassword)
         
         // Check if password matches
@@ -112,19 +113,21 @@ const LoginPage = () => {
           sessionStorage.setItem('role', isAdmin ? 'admin' : 'user')
           sessionStorage.setItem('department', trimmedUsername) // Store username as department for access control
           
+          // Navigate based on role
+          if (isAdmin) {
+            navigate("/dashboard/admin")
+          } else {
+            // Regular users go to admin dashboard, just like admin
+            navigate("/dashboard/admin")
+          }
+          
           showToast(`Login successful. Welcome, ${trimmedUsername}!`, "success")
-          
-          // Add small delay to allow toast to show before navigation
-          setTimeout(() => {
-            if (isAdmin) {
-              navigate("/dashboard/admin")
-            } else {
-              navigate("/dashboard/admin")
-            }
-          }, 1000)
-          
           return
+        } else {
+          showToast("Password is incorrect. Please try again.", "error")
         }
+      } else {
+        showToast("Username not found. Please check and try again.", "error")
       }
       
       // If we got here, login failed
@@ -133,12 +136,11 @@ const LoginPage = () => {
         passwordMatch: (trimmedUsername in masterData.userCredentials) ? 
           "Password did not match" : 'Username not found'
       })
-      showToast("Invalid username or password. Please try again.", "error")
-      setIsLoading(false) // Make sure to reset loading state on failure
     } catch (error) {
       console.error("Login Error:", error)
       showToast(`Login failed: ${error.message}. Please try again.`, "error")
-      setIsLoading(false) // Make sure to reset loading state on error
+    } finally {
+      setIsLoginLoading(false)
     }
   }
 
@@ -175,7 +177,6 @@ const LoginPage = () => {
               value={formData.username}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
             />
           </div>
 
@@ -193,19 +194,16 @@ const LoginPage = () => {
               value={formData.password}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
             />
           </div>
 
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 -mx-4 -mb-4 mt-4 rounded-b-lg">
             <button
               type="submit"
-              className={`w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-md font-medium ${
-                isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={isLoading}
+              className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-md font-medium disabled:opacity-50"
+              disabled={isLoginLoading || isDataLoading}
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoginLoading ? "Logging in..." : isDataLoading ? "Loading..." : "Login"}
             </button>
           </div>
         </form>
@@ -219,7 +217,6 @@ const LoginPage = () => {
             Powered by-<span className="font-semibold">Botivate</span>
           </a>
         </div>
-
       </div>
 
       {/* Toast Notification */}

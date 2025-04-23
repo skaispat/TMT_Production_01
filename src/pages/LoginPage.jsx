@@ -8,7 +8,8 @@ const LoginPage = () => {
   const [isDataLoading, setIsDataLoading] = useState(false)
   const [isLoginLoading, setIsLoginLoading] = useState(false)
   const [masterData, setMasterData] = useState({
-    userCredentials: {} // Object where keys are usernames and values are passwords
+    userCredentials: {}, // Object where keys are usernames and values are passwords
+    userRoles: {} // Object where keys are usernames and values are roles
   })
   const [formData, setFormData] = useState({
     username: "",
@@ -35,36 +36,69 @@ const LoginPage = () => {
         
         const result = await response.json()
         
-        // Create userCredentials object from the sheet data
+        // Create userCredentials and userRoles objects from the sheet data
         const userCredentials = {}
+        const userRoles = {}
         
         // If there's data from the sheet, process it
         if (result.success && result.data) {
           // Log the entire response to understand its structure
           console.log("Raw data response:", result.data);
           
-          const usernamesCol = result.data.C || [];
-          const passwordsCol = result.data.D || [];
+          // IMPORTANT: Get the data arrays from the correct columns
+          const usernamesCol = result.data.C || []; // Column C - Doer's Name
+          const passwordsCol = result.data.D || []; // Column D - Password
+          const rolesCol = result.data.E || [];     // Column E - Role
           
           console.log("Username column:", usernamesCol);
           console.log("Password column:", passwordsCol);
+          console.log("Role column:", rolesCol);
           
           // Process all rows, including the first one
           for (let i = 0; i < usernamesCol.length; i++) {
+            // Convert to string, trim and lowercase for consistency
             const username = String(usernamesCol[i] || '').trim().toLowerCase();
-            const password = passwordsCol[i];
+            const password = String(passwordsCol[i] || '').trim();
             
-            if (username && password !== undefined && password !== null && 
-                String(password).trim() !== '') {
-              userCredentials[username] = String(password).trim();
-              console.log(`Added credential for: ${username}`);
+            // IMPORTANT: Get the actual role value directly from the sheet
+            // Don't convert to lowercase as "admin" might be specifically capitalized
+            let role = rolesCol[i];
+            
+            // Only process if we have both username and password
+            if (username && password && password.trim() !== '') {
+              // Log what we found for debugging
+              console.log(`Processing row ${i}: username=${username}, password=${password}, role=${role}`);
+              
+              // Convert role to string, handle null/undefined
+              if (role === null || role === undefined) {
+                role = "user"; // Default to 'user' if no role is specified
+              } else {
+                // Make sure it's a string and trim whitespace
+                role = String(role).trim();
+              }
+              
+              // Make role lowercase for consistent comparison
+              const normalizedRole = role.toLowerCase();
+              
+              // Store in our maps
+              userCredentials[username] = password;
+              userRoles[username] = normalizedRole;
+              
+              console.log(`Added credential for: ${username}, Role: ${normalizedRole}`);
             }
           }
         }
         
-        setMasterData({ userCredentials })
+        setMasterData({ userCredentials, userRoles })
         console.log("Loaded credentials from master sheet:", Object.keys(userCredentials).length)
-        console.log("Credentials map:", userCredentials) // Add this to see the actual credentials
+        console.log("Credentials map:", userCredentials)
+        console.log("Roles map:", userRoles)
+        
+        // Debug - check admin roles specifically
+        const adminUsers = Object.entries(userRoles)
+          .filter(([_, role]) => role === 'admin')
+          .map(([username]) => username);
+        console.log("Admin users found:", adminUsers);
       } catch (error) {
         console.error("Error Fetching Master Data:", error)
         showToast(`Network error: ${error.message}. Please try again later.`, "error")
@@ -93,33 +127,51 @@ const LoginPage = () => {
       console.log("Entered Username:", trimmedUsername)
       console.log("Entered Password:", trimmedPassword) // For debugging (remove in production)
       console.log("Available Credentials Count:", Object.keys(masterData.userCredentials).length)
-      console.log("Current userCredentials:", masterData.userCredentials) // For debugging
+      console.log("Current userCredentials:", masterData.userCredentials)
+      console.log("Current userRoles:", masterData.userRoles)
       
       // Check if the username exists in our credentials map
       if (trimmedUsername in masterData.userCredentials) {
         const correctPassword = masterData.userCredentials[trimmedUsername]
+        const userRole = masterData.userRoles[trimmedUsername]
         
         console.log("Found user in credentials map")
-        console.log("Expected Password:", correctPassword) // For debugging (remove in production)
+        console.log("Expected Password:", correctPassword)
         console.log("Password Match:", correctPassword === trimmedPassword)
+        console.log("User Role:", userRole)
+        
+        // Check if the user is inactive
+        if (userRole === "inactive") {
+          showToast("Your account is inactive. Please contact the administrator.", "error")
+          setIsLoginLoading(false)
+          return
+        }
         
         // Check if password matches
         if (correctPassword === trimmedPassword) {
           // Store user info in sessionStorage
           sessionStorage.setItem('username', trimmedUsername)
           
-          // Determine if user is admin based on username
-          const isAdmin = trimmedUsername === 'admin'
-          sessionStorage.setItem('role', isAdmin ? 'admin' : 'user')
-          sessionStorage.setItem('department', trimmedUsername) // Store username as department for access control
+          // Check if user is admin - explicitly compare with the string "admin"
+          const isAdmin = userRole === "admin";
+          console.log(`User ${trimmedUsername} is admin: ${isAdmin}`);
           
-          // Navigate based on role
+          // Set role based on the fetched role
+          sessionStorage.setItem('role', isAdmin ? 'admin' : 'user')
+          
+          // For admin users, we don't want to restrict by department
           if (isAdmin) {
-            navigate("/dashboard/admin")
+            sessionStorage.setItem('department', 'all') // Admin sees all departments
+            sessionStorage.setItem('isAdmin', 'true') // Additional flag to ensure admin permissions
+            console.log("ADMIN LOGIN - Setting full access permissions");
           } else {
-            // Regular users go to admin dashboard, just like admin
-            navigate("/dashboard/admin")
+            sessionStorage.setItem('department', trimmedUsername)
+            sessionStorage.setItem('isAdmin', 'false')
+            console.log("USER LOGIN - Setting restricted access");
           }
+          
+          // Navigate to dashboard
+          navigate("/dashboard/admin")
           
           showToast(`Login successful. Welcome, ${trimmedUsername}!`, "success")
           return
@@ -134,7 +186,8 @@ const LoginPage = () => {
       console.error("Login Failed", {
         usernameExists: trimmedUsername in masterData.userCredentials,
         passwordMatch: (trimmedUsername in masterData.userCredentials) ? 
-          "Password did not match" : 'Username not found'
+          "Password did not match" : 'Username not found',
+        userRole: masterData.userRoles[trimmedUsername] || 'No role'
       })
     } catch (error) {
       console.error("Login Error:", error)

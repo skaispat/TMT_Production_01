@@ -17,6 +17,20 @@ const LoginPage = () => {
   })
   const [toast, setToast] = useState({ show: false, message: "", type: "" })
 
+  // Function to check if a role is any variation of "inactive"
+  const isInactiveRole = (role) => {
+    if (!role) return false;
+    
+    // Convert to lowercase
+    const normalizedRole = String(role).toLowerCase().trim();
+    
+    // Check for different variations of "inactive" status
+    return normalizedRole === "inactive" || 
+           normalizedRole === "in active" || 
+           normalizedRole === "inactiv" || 
+           normalizedRole === "in activ";
+  }
+
   // Fetch master data on component mount
   useEffect(() => {
     const fetchMasterData = async () => {
@@ -61,23 +75,28 @@ const LoginPage = () => {
             const password = String(passwordsCol[i] || '').trim();
             
             // IMPORTANT: Get the actual role value directly from the sheet
-            // Don't convert to lowercase as "admin" might be specifically capitalized
             let role = rolesCol[i];
             
             // Only process if we have both username and password
             if (username && password && password.trim() !== '') {
-              // Log what we found for debugging
-              console.log(`Processing row ${i}: username=${username}, password=${password}, role=${role}`);
-              
               // Convert role to string, handle null/undefined
               if (role === null || role === undefined) {
                 role = "user"; // Default to 'user' if no role is specified
               } else {
-                // Make sure it's a string and trim whitespace
+                // Make sure it's a string
                 role = String(role).trim();
               }
               
-              // Make role lowercase for consistent comparison
+              // Log what we found for debugging
+              console.log(`Processing row ${i}: username=${username}, password=${password}, role=${role}`);
+              
+              // Check if the role is any kind of inactive status
+              if (isInactiveRole(role)) {
+                console.log(`Skipping inactive user: ${username} with role: ${role}`);
+                continue; // Skip this user
+              }
+              
+              // Store normalized role for comparison
               const normalizedRole = role.toLowerCase();
               
               // Store in our maps
@@ -140,13 +159,6 @@ const LoginPage = () => {
         console.log("Password Match:", correctPassword === trimmedPassword)
         console.log("User Role:", userRole)
         
-        // Check if the user is inactive
-        if (userRole === "inactive") {
-          showToast("Your account is inactive. Please contact the administrator.", "error")
-          setIsLoginLoading(false)
-          return
-        }
-        
         // Check if password matches
         if (correctPassword === trimmedPassword) {
           // Store user info in sessionStorage
@@ -176,10 +188,10 @@ const LoginPage = () => {
           showToast(`Login successful. Welcome, ${trimmedUsername}!`, "success")
           return
         } else {
-          showToast("Password is incorrect. Please try again.", "error")
+          showToast("Username or password is incorrect. Please try again.", "error")
         }
       } else {
-        showToast("Username not found. Please check and try again.", "error")
+        showToast("Username or password is incorrect. Please try again.", "error")
       }
       
       // If we got here, login failed

@@ -21,7 +21,7 @@ const LoginPage = () => {
   const isInactiveRole = (role) => {
     if (!role) return false;
     
-    // Convert to lowercase
+    // Convert to lowercasex
     const normalizedRole = String(role).toLowerCase().trim();
     
     // Check for different variations of "inactive" status
@@ -36,7 +36,7 @@ const LoginPage = () => {
     const fetchMasterData = async () => {
       try {
         setIsDataLoading(true)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec"
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVfzNQ08ZD2r9wEm3qRlfBX2hxVfE2AoM53pVlAS3PpgBcrtzNukhjdcdvcGxI13sx/exec"
         
         // Using POST for better data handling
         const formData = new FormData()

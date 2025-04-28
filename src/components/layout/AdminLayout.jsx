@@ -37,17 +37,17 @@ export default function AdminLayout({ children, darkMode, toggleDarkMode }) {
 
   // Filter dataCategories based on user role
   const dataCategories = [
-    { id: "main", name: "Admin", link: "/dashboard/data/main" },
-    { id: "sales", name: "Sales", link: "/dashboard/data/sales" },
-    { id: "service", name: "Service", link: "/dashboard/data/service" },
+    { id: "main", name: "Store", link: "/dashboard/data/main" },
+    { id: "sales", name: "HouseKeeping", link: "/dashboard/data/sales" },
+    // { id: "service", name: "Service", link: "/dashboard/data/service" },
     { id: "account", name: "Account", link: "/dashboard/data/account" },
-    { id: "warehouse", name: "Warehouse", link: "/dashboard/data/warehouse" },
-    // { id: "delegation", name: "Delegation", link: "/dashboard/data/delegation" },
-    { id: "purchase", name: "Purchase", link: "/dashboard/data/purchase" },
-    { id: "director", name: "Director", link: "/dashboard/data/director" },
-    { id: "managing-director", name: "Managing Director", link: "/dashboard/data/managing-director" },
-    { id: "coo", name: "COO", link: "/dashboard/data/coo" },
-    { id: "jockey", name: "Jockey", link: "/dashboard/data/jockey" },
+    // { id: "warehouse", name: "Warehouse", link: "/dashboard/data/warehouse" },
+    // // { id: "delegation", name: "Delegation", link: "/dashboard/data/delegation" },
+    // { id: "purchase", name: "Purchase", link: "/dashboard/data/purchase" },
+    // { id: "director", name: "Director", link: "/dashboard/data/director" },
+    // { id: "managing-director", name: "Managing Director", link: "/dashboard/data/managing-director" },
+    // { id: "coo", name: "COO", link: "/dashboard/data/coo" },
+    // { id: "jockey", name: "Jockey", link: "/dashboard/data/jockey" },
   ]
 
   // Determine which departments to show in the submenu
@@ -80,13 +80,13 @@ export default function AdminLayout({ children, darkMode, toggleDarkMode }) {
       active: location.pathname === "/dashboard/assign-task",
       showFor: ["admin"] // Only show for admin
     },
-    {
-      href: "/dashboard/delegation",
-      label: "Delegation",
-      icon: ClipboardList,
-      active: location.pathname === "/dashboard/delegation",
-      showFor: ["admin", "user"] // Only show for admin
-    },
+    // {
+    //   href: "/dashboard/delegation",
+    //   label: "Delegation",
+    //   icon: ClipboardList,
+    //   active: location.pathname === "/dashboard/delegation",
+    //   showFor: ["admin", "user"] // Only show for admin
+    // },
     {
       href: "#",
       label: "Data",

@@ -6,9 +6,9 @@ import AdminLayout from "../../components/layout/AdminLayout"
 import ReactDOM from 'react-dom';
 
 // Google Apps Script URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVfzNQ08ZD2r9wEm3qRlfBX2hxVfE2AoM53pVlAS3PpgBcrtzNukhjdcdvcGxI13sx/exec"
 // Google Drive folder ID
-const DRIVE_FOLDER_ID = "1TzjAIpRAoz017MfzZ0gZaN-v5jyKtg7E"
+const DRIVE_FOLDER_ID = "1xdahLZtnhCGnHve4HdPolTm5y4DLqdyl"
 
 function AccountDataPage() {
   const [accountData, setAccountData] = useState([])
@@ -311,7 +311,7 @@ const confirmMarkDone = async () => {
     }));
     
     const formData = new FormData();
-    formData.append('sheetName', 'ACCOUNT');
+    formData.append('sheetName', 'ACCOUNTS');
     formData.append('action', 'updateSalesData');
     formData.append('rowData', JSON.stringify(submissionData));
     
@@ -356,7 +356,7 @@ const confirmMarkDone = async () => {
       const pendingAccounts = [];
       const historyRows = [];
       
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=ACCOUNT`);
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/gviz/tq?tqx=out:json&sheet=ACCOUNTS`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status}`);
@@ -590,7 +590,7 @@ const confirmMarkDone = async () => {
       }))
       
       const formData = new FormData()
-      formData.append('sheetName', 'ACCOUNT')
+      formData.append('sheetName', 'ACCOUNTS')
       formData.append('action', 'updateSalesData')
       formData.append('rowData', JSON.stringify(submissionData))
       

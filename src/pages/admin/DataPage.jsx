@@ -31,22 +31,22 @@ export default function DataPage() {
       return <AdminDataPage/>
     case "sales":
       return <SalesDataPage />
-    case "service":
-      return <ServiceDataPage />
-    case "jockey":
-      return <JockeyDataPage />
+    // case "service":
+    //   return <ServiceDataPage />
+    // case "jockey":
+    //   return <JockeyDataPage />
     case "account":
       return <AccountDataPage />
-    case "warehouse":
-      return <WarehouseDataPage />
-      case "purchase":
-        return <PurchaseDataPage/>
-        case "director":
-        return <DirectorDataPage/>
-        case "managing-director":
-          return <ManagingDirector/>
-          case "coo":
-          return <Coo/>
+    // case "warehouse":
+    //   return <WarehouseDataPage />
+    //   case "purchase":
+    //     return <PurchaseDataPage/>
+    //     case "director":
+    //     return <DirectorDataPage/>
+    //     case "managing-director":
+    //       return <ManagingDirector/>
+    //       case "coo":
+    //       return <Coo/>
     default:
       return (
         <AdminLayout>

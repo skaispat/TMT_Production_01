@@ -128,7 +128,7 @@ export default function AssignTask() {
   const [doerOptions, setDoerOptions] = useState([])
 
   const frequencies = [
-    { value: "one-time", label: "One Time (No Recurrence)" },
+    // { value: "one-time", label: "One Time (No Recurrence)" },
     { value: "daily", label: "Daily" },
     { value: "weekly", label: "Weekly" },
     { value: "fortnightly", label: "Fortnightly" },
@@ -166,7 +166,7 @@ export default function AssignTask() {
   // Function to fetch options from master sheet
   const fetchMasterSheetOptions = async () => {
     try {
-      const masterSheetId = '1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY'
+      const masterSheetId = '1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE'
       const masterSheetName = 'master'
       
       const url = `https://docs.google.com/spreadsheets/d/${masterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(masterSheetName)}`
@@ -254,7 +254,7 @@ export default function AssignTask() {
 // Add a function to get the last task ID
 const getLastTaskId = async (sheetName) => {
   try {
-    const url = `https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`
+    const url = `https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`
 
     const response = await fetch(url)
     if (!response.ok) {
@@ -303,7 +303,7 @@ const formatDateToDDMMYYYY = (date) => {
 // Function to fetch working days from the Working Day Calendar sheet
 const fetchWorkingDays = async () => {
   try {
-    const sheetId = '1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY'
+    const sheetId = '1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE'
     const sheetName = 'Working Day Calender'
     
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`
@@ -536,7 +536,7 @@ const handleSubmit = async (e) => {
     formPayload.append('rowData', JSON.stringify(allTasksData))
     formPayload.append('batchInsert', 'true')
 
-    await fetch('https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec', {
+    await fetch('https://script.google.com/macros/s/AKfycbxVfzNQ08ZD2r9wEm3qRlfBX2hxVfE2AoM53pVlAS3PpgBcrtzNukhjdcdvcGxI13sx/exec', {
       method: 'POST',
       body: formPayload,
       mode: 'no-cors'

@@ -18,7 +18,6 @@ import {
 } from "recharts"
 
 export default function AdminDashboard() {
-  const [dashboardType, setDashboardType] = useState("checklist")
   const [taskView, setTaskView] = useState("recent")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterStaff, setFilterStaff] = useState("all")
@@ -41,11 +40,7 @@ export default function AdminDashboard() {
     activeStaff: 0,
     completionRate: 0,
     barChartData: [],
-    pieChartData: [],
-    // Add new counters for delegation mode
-    completedRatingOne: 0,
-    completedRatingTwo: 0,
-    completedRatingThreePlus: 0
+    pieChartData: []
   })
   
   // Store the current date for overdue calculation
@@ -209,29 +204,40 @@ const filterTasksByDateRange = () => {
   const fetchMasterSheetColumnA = async () => {
     try {
       setIsFetchingMaster(true)
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=MASTER`)
+      // const response = await fetch(`https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/tq?tqx=out:json&sheet=MASTER`)
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/gviz/tq?tqx=out:json&sheet=MASTER`)
       
       if (!response.ok) {
         throw new Error(`Failed to fetch master sheet data: ${response.status}`)
       }
       
       const text = await response.text()
+      console.log('Raw response:', text) // Log the entire raw response
+      
       const jsonStart = text.indexOf('{')
       const jsonEnd = text.lastIndexOf('}')
+      
+      if (jsonStart === -1 || jsonEnd === -1) {
+        throw new Error('Could not find valid JSON in response')
+      }
+      
       const jsonString = text.substring(jsonStart, jsonEnd + 1)
+      console.log('Extracted JSON string:', jsonString) // Log the extracted JSON string
+      
       const data = JSON.parse(jsonString)
       
       // Extract column A values (first column)
       const columnAValues = data.table.rows
-        .map(row => {
-          // Check if row has 'c' property and first cell exists
-          if (row && row.c && row.c[0]) {
-            // Get value from first cell ('v' property)
-            return row.c[0].v || null
-          }
-          return null
-        })
-        .filter(value => value !== null && value !== '') // Remove empty values
+      .slice(1) // Start from row 2 (index 1)
+      .map(row => {
+        // Check if row has 'c' property and first cell exists
+        if (row && row.c && row.c[0]) {
+          // Get value from first cell ('v' property)
+          return row.c[0].v || null
+        }
+        return null
+      })
+      .filter(value => value !== null && value !== '') 
       
       // Add default option
       const options = ["Select Department", ...columnAValues]
@@ -265,22 +271,18 @@ const filterTasksByDateRange = () => {
     }
   }
   
-  // Modified fetch function to support both checklist and delegation
-// Modified fetch function to properly handle delegation mode
+// Simplified fetch function for only department data
 const fetchDepartmentData = async (department) => {
   if (!department || department === "Select Department") {
     return;
   }
   
-  // Determine which sheet to fetch based on dashboard type
-  const sheetName = dashboardType === "checklist" ? department : "DELEGATION";
-  
   try {
     setIsFetchingMaster(true);
-    const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=${sheetName}`);
+    const response = await fetch(`https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/gviz/tq?tqx=out:json&sheet=${department}`);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch ${sheetName} sheet data: ${response.status}`);
+      throw new Error(`Failed to fetch ${department} sheet data: ${response.status}`);
     }
     
     const text = await response.text();
@@ -293,164 +295,100 @@ const fetchDepartmentData = async (department) => {
     const username = sessionStorage.getItem('username');
     const userRole = sessionStorage.getItem('role');
   
-  // Initialize counters
-  let totalTasks = 0;
-  let completedTasks = 0;
-  let pendingTasks = 0;
-  let overdueTasks = 0;
-  
-  // Add new counters for delegation mode
-  let completedRatingOne = 0;
-  let completedRatingTwo = 0;
-  let completedRatingThreePlus = 0;
-  
-  // Monthly data for bar chart
-  const monthlyData = {
-    Jan: { completed: 0, pending: 0 },
-    Feb: { completed: 0, pending: 0 },
-    Mar: { completed: 0, pending: 0 },
-    Apr: { completed: 0, pending: 0 },
-    May: { completed: 0, pending: 0 },
-    Jun: { completed: 0, pending: 0 },
-    Jul: { completed: 0, pending: 0 },
-    Aug: { completed: 0, pending: 0 },
-    Sep: { completed: 0, pending: 0 },
-    Oct: { completed: 0, pending: 0 },
-    Nov: { completed: 0, pending: 0 },
-    Dec: { completed: 0, pending: 0 }
-  };
-  
-  // Status data for pie chart
-  const statusData = {
-    Completed: 0,
-    Pending: 0,
-    Overdue: 0
-  };
-  
-  // Staff tracking map
-  const staffTrackingMap = new Map();
-  
-  // Process row data
-  const processedRows = data.table.rows.map((row, rowIndex) => {
-    // Skip header row
-    if (rowIndex === 0) return null;
+    // Initialize counters
+    let totalTasks = 0;
+    let completedTasks = 0;
+    let pendingTasks = 0;
+    let overdueTasks = 0;
     
-    // For non-admin users, filter by username in Column E (index 4)
-    const assignedTo = getCellValue(row, 4) || 'Unassigned';
-    const isUserMatch = userRole === 'admin' || 
-                        assignedTo.toLowerCase() === username.toLowerCase();
-    
-    // If not a match and not admin, skip this row
-    if (!isUserMatch) return null;
-    
-    // Check column B for valid task row
-    const columnBValue = getCellValue(row, 1); // Column B (index 1)
-    if (columnBValue === null || columnBValue === '') return null;
-    
-    // Get due date from Column L (index 11)
-    let dueDateValue = getCellValue(row, 11);
-    const dueDate = dueDateValue ? parseGoogleSheetsDate(String(dueDateValue)) : '';
-    
-    // Get completion date from Column M (index 12)
-    let completionDateValue = getCellValue(row, 12);
-    const completedDate = completionDateValue ? parseGoogleSheetsDate(String(completionDateValue)) : '';
-    
-    // Parse dates for comparison
-    const dueDateObj = parseDateFromDDMMYYYY(dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Track staff details for all tasks (we'll still show all tasks in the staff table)
-    if (!staffTrackingMap.has(assignedTo)) {
-      staffTrackingMap.set(assignedTo, {
-        name: assignedTo,
-        totalTasks: 0,
-        completedTasks: 0,
-        pendingTasks: 0,
-        progress: 0
-      });
-    }
-    
-    // Initialize task data for full task list
-    const title = columnBValue || 'Untitled Task';
-    let status = 'pending';
-    
-    // For task list status determination - keep this separate from counter logic
-    if (dueDate && completedDate) {
-      status = 'completed';
-    } else if (dueDate && isDateInPast(dueDate)) {
-      status = 'overdue';
-    }
-    
-    // Create the task object for the full task list
-    const taskObj = {
-      id: rowIndex,
-      title,
-      assignedTo,
-      dueDate,
-      status,
-      frequency: getCellValue(row, 5) || 'one-time'
+    // Monthly data for bar chart
+    const monthlyData = {
+      Jan: { completed: 0, pending: 0 },
+      Feb: { completed: 0, pending: 0 },
+      Mar: { completed: 0, pending: 0 },
+      Apr: { completed: 0, pending: 0 },
+      May: { completed: 0, pending: 0 },
+      Jun: { completed: 0, pending: 0 },
+      Jul: { completed: 0, pending: 0 },
+      Aug: { completed: 0, pending: 0 },
+      Sep: { completed: 0, pending: 0 },
+      Oct: { completed: 0, pending: 0 },
+      Nov: { completed: 0, pending: 0 },
+      Dec: { completed: 0, pending: 0 }
     };
     
-    // Replace this part in your fetchDepartmentData function
-
-// Special handling for delegation mode
-if (dashboardType === "delegation") {
-  // Count every row as a total task in delegation mode
-  totalTasks++;
-  
-  // Check Column O (index 14) for "done" status - Make case-insensitive
-  const columnOValue = getCellValue(row, 14); // Column O
-  
-  // Check Column R (index 17) for rating
-  const columnRValue = getCellValue(row, 17); // Column R
-  
-  // Update staff member totals
-  const staffData = staffTrackingMap.get(assignedTo);
-  staffData.totalTasks++;
-  
-  // Make a case-insensitive comparison for "done"
-  if (columnOValue && typeof columnOValue === 'string' && columnOValue.toLowerCase() === "done") {
-    // Count based on Column R value for the special cards
-    if (columnRValue === 1) {
-      completedRatingOne++;
-    } else if (columnRValue === 2) {
-      completedRatingTwo++;
-    } else if (columnRValue > 2) {
-      completedRatingThreePlus++;
-    }
+    // Status data for pie chart
+    const statusData = {
+      Completed: 0,
+      Pending: 0,
+      Overdue: 0
+    };
     
-    // Also count in regular completedTasks for other calculations
-    completedTasks++;
-    staffData.completedTasks++;
-    statusData.Completed++;
+    // Staff tracking map
+    const staffTrackingMap = new Map();
     
-    // Update monthly data for completed tasks
-    const currentMonth = today.toLocaleString('default', { month: 'short' });
-    if (monthlyData[currentMonth]) {
-      monthlyData[currentMonth].completed++;
-    }
-  } else {
-    // Not completed (either pending or overdue)
-    staffData.pendingTasks++;
-    
-    if (dueDateObj && dueDateObj < today) {
-      // Task is overdue
-      overdueTasks++;
-      statusData.Overdue++;
-    } else {
-      // Task is pending
-      pendingTasks++;
-      statusData.Pending++;
+    // Process row data
+    const processedRows = data.table.rows.map((row, rowIndex) => {
+      // Skip header row
+      if (rowIndex === 0) return null;
       
-      // Update monthly data for pending tasks
-      const currentMonth = today.toLocaleString('default', { month: 'short' });
-      if (monthlyData[currentMonth]) {
-        monthlyData[currentMonth].pending++;
+      // For non-admin users, filter by username in Column E (index 4)
+      const assignedTo = getCellValue(row, 4) || 'Unassigned';
+      const isUserMatch = userRole === 'admin' || 
+                          assignedTo.toLowerCase() === username.toLowerCase();
+      
+      // If not a match and not admin, skip this row
+      if (!isUserMatch) return null;
+      
+      // Check column B for valid task row
+      const columnBValue = getCellValue(row, 1); // Column B (index 1)
+      if (columnBValue === null || columnBValue === '') return null;
+      
+      // Get due date from Column L (index 11)
+      let dueDateValue = getCellValue(row, 11);
+      const dueDate = dueDateValue ? parseGoogleSheetsDate(String(dueDateValue)) : '';
+      
+      // Get completion date from Column M (index 12)
+      let completionDateValue = getCellValue(row, 12);
+      const completedDate = completionDateValue ? parseGoogleSheetsDate(String(completionDateValue)) : '';
+      
+      // Parse dates for comparison
+      const dueDateObj = parseDateFromDDMMYYYY(dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Track staff details for all tasks (we'll still show all tasks in the staff table)
+      if (!staffTrackingMap.has(assignedTo)) {
+        staffTrackingMap.set(assignedTo, {
+          name: assignedTo,
+          totalTasks: 0,
+          completedTasks: 0,
+          pendingTasks: 0,
+          progress: 0
+        });
       }
-    }
-  }
-} else {
+      
+      // Initialize task data for full task list
+      const title = columnBValue || 'Untitled Task';
+      let status = 'pending';
+      
+      // For task list status determination - keep this separate from counter logic
+      if (dueDate && completedDate) {
+        status = 'completed';
+      } else if (dueDate && isDateInPast(dueDate)) {
+        status = 'overdue';
+      }
+      
+      // Create the task object for the full task list
+      const taskObj = {
+        id: rowIndex,
+        title,
+        assignedTo,
+        dueDate,
+        status,
+        frequency: getCellValue(row, 5) || 'one-time'
+      };
+      
       // Original checklist mode logic
       // Only count tasks for dashboard cards if they're not in the future
       // (due today or in the past, or already completed)
@@ -500,92 +438,79 @@ if (dashboardType === "delegation") {
           }
         }
       }
-    }
+      
+      return taskObj;
+    }).filter(task => task !== null);
     
-    return taskObj;
-  }).filter(task => task !== null);
-  
-  // Calculate completion rate
-  const completionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0;
-  
-  // Convert monthly data to chart format
-  const barChartData = Object.entries(monthlyData).map(([name, data]) => ({
-    name,
-    completed: data.completed,
-    pending: data.pending
-  }));
-  
-  // Convert status data to pie chart format
-  const pieChartData = [
-    { name: "Completed", value: statusData.Completed, color: "#22c55e" },
-    { name: "Pending", value: statusData.Pending, color: "#facc15" },
-    { name: "Overdue", value: statusData.Overdue, color: "#ef4444" }
-  ];
-  
-  // Process staff tracking map
-  const staffMembers = Array.from(staffTrackingMap.values()).map(staff => {
-    const progress = staff.totalTasks > 0 
-      ? Math.round((staff.completedTasks / staff.totalTasks) * 100) 
-      : 0;
+    // Calculate completion rate
+    const completionRate = totalTasks > 0 ? ((completedTasks / totalTasks) * 100).toFixed(1) : 0;
     
-    return {
-      id: staff.name.replace(/\s+/g, '-').toLowerCase(),
-      name: staff.name,
-      email: `${staff.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-      totalTasks: staff.totalTasks,
-      completedTasks: staff.completedTasks,
-      pendingTasks: staff.pendingTasks,
-      progress
-    };
-  });
-  
-  // Update department data state
-  setDepartmentData({
-    allTasks: processedRows,
-    staffMembers,
-    totalTasks,
-    completedTasks,
-    pendingTasks,
-    overdueTasks,
-    activeStaff: departmentData.activeStaff,
-    completionRate,
-    barChartData,
-    pieChartData,
-    completedRatingOne,
-    completedRatingTwo,
-    completedRatingThreePlus
-  });
-  
-} catch (error) {
-  console.error(`Error fetching ${department} sheet data:`, error);
-} finally {
-  setIsFetchingMaster(false);
-}
+    // Convert monthly data to chart format
+    const barChartData = Object.entries(monthlyData).map(([name, data]) => ({
+      name,
+      completed: data.completed,
+      pending: data.pending
+    }));
+    
+    // Convert status data to pie chart format
+    const pieChartData = [
+      { name: "Completed", value: statusData.Completed, color: "#22c55e" },
+      { name: "Pending", value: statusData.Pending, color: "#facc15" },
+      { name: "Overdue", value: statusData.Overdue, color: "#ef4444" }
+    ];
+    
+    // Process staff tracking map
+    const staffMembers = Array.from(staffTrackingMap.values()).map(staff => {
+      const progress = staff.totalTasks > 0 
+        ? Math.round((staff.completedTasks / staff.totalTasks) * 100) 
+        : 0;
+      
+      return {
+        id: staff.name.replace(/\s+/g, '-').toLowerCase(),
+        name: staff.name,
+        email: `${staff.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+        totalTasks: staff.totalTasks,
+        completedTasks: staff.completedTasks,
+        pendingTasks: staff.pendingTasks,
+        progress
+      };
+    });
+    
+    // Update department data state
+    setDepartmentData({
+      allTasks: processedRows,
+      staffMembers,
+      totalTasks,
+      completedTasks,
+      pendingTasks,
+      overdueTasks,
+      activeStaff: departmentData.activeStaff,
+      completionRate,
+      barChartData,
+      pieChartData
+    });
+    
+  } catch (error) {
+    console.error(`Error fetching ${department} sheet data:`, error);
+  } finally {
+    setIsFetchingMaster(false);
+  }
 };
   
 useEffect(() => {
-  if (dashboardType === "delegation") {
-    // Always fetch from DELEGATION sheet in delegation mode
-    fetchDepartmentData("DELEGATION");
-  } else if (selectedMasterOption && selectedMasterOption !== "Select Department") {
-    // Standard department data fetching for checklist mode
+  if (selectedMasterOption && selectedMasterOption !== "Select Department") {
+    // Standard department data fetching
     fetchDepartmentData(selectedMasterOption);
   }
-}, [selectedMasterOption, dashboardType]);
-
-// When dashboard type changes, trigger a fetch
-useEffect(() => {
-  if (dashboardType === "delegation") {
-    fetchDepartmentData("DELEGATION");
-  }
-}, [dashboardType]);
+}, [selectedMasterOption]);
 
 // When dashboard loads, set current date
 useEffect(() => {
   setCurrentDate(new Date());
   fetchMasterSheetColumnA();
 }, []);
-  // Filter tasks based on the filter criteria
+
+// Filter tasks based on the filter criteria
 // Updated filteredTasks function with type checking
 // Improved filteredTasks function with better type checking and debugging
 const filteredTasks = departmentData.allTasks.filter((task) => {
@@ -856,31 +781,13 @@ const StaffTasksTable = () => {
       <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
   <h1 className="text-2xl font-bold tracking-tight text-purple-500">Admin Dashboard</h1>
-  <div className="flex items-center gap-2">
-    {/* Dashboard Type Selection */}
-    <select
-      value={dashboardType}
-      onChange={(e) => {
-        setDashboardType(e.target.value);
-        // Reset department selection when switching to delegation
-        if (e.target.value === "delegation") {
-          setSelectedMasterOption("DELEGATION");
-        } else {
-          setSelectedMasterOption("Select Department");
-        }
-      }}
-      className="w-[140px] rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-    >
-      <option value="checklist">Checklist</option>
-      <option value="delegation">Delegation</option>
-    </select>
-    
-    {/* Master Sheet Column A dropdown - disabled for delegation */}
+  <div className="flex items-center gap-2">    
+    {/* Master Sheet Column A dropdown */}
     <select
       value={selectedMasterOption}
       onChange={(e) => setSelectedMasterOption(e.target.value)}
       className="w-[180px] rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-      disabled={isFetchingMaster || dashboardType === "delegation"}
+      disabled={isFetchingMaster}
     >
       {isFetchingMaster ? (
         <option>Loading...</option>
@@ -899,7 +806,7 @@ const StaffTasksTable = () => {
           <div className="rounded-lg border border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-all bg-white">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-tr-lg p-4">
               <h3 className="text-sm font-medium text-blue-700">
-                {dashboardType === "delegation" ? "Total Tasks" : "Total Tasks"}
+                Total Tasks
               </h3>
               <ListTodo className="h-4 w-4 text-blue-500" />
             </div>
@@ -914,16 +821,16 @@ const StaffTasksTable = () => {
           <div className="rounded-lg border border-l-4 border-l-green-500 shadow-md hover:shadow-lg transition-all bg-white">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-50 to-green-100 rounded-tr-lg p-4">
               <h3 className="text-sm font-medium text-green-700">
-                {dashboardType === "delegation" ? "Completed" : "Completed Tasks"}
+                Completed Tasks
               </h3>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </div>
             <div className="p-4">
               <div className="text-3xl font-bold text-green-700">
-                {dashboardType === "delegation" ? departmentData.completedRatingOne : departmentData.completedTasks}
+                {departmentData.completedTasks}
               </div>
               <p className="text-xs text-green-600">
-                {dashboardType === "delegation" ? "Task completed once" : "Total completed till date"}
+                Total completed till date
               </p>
             </div>
           </div>
@@ -931,20 +838,16 @@ const StaffTasksTable = () => {
           <div className="rounded-lg border border-l-4 border-l-amber-500 shadow-md hover:shadow-lg transition-all bg-white">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-amber-50 to-amber-100 rounded-tr-lg p-4">
               <h3 className="text-sm font-medium text-amber-700">
-                {dashboardType === "delegation" ? "Completed" : "Pending Tasks"}
+                Pending Tasks
               </h3>
-              {dashboardType === "delegation" ? (
-                <CheckCircle2 className="h-4 w-4 text-amber-500" />
-              ) : (
-                <Clock className="h-4 w-4 text-amber-500" />
-              )}
+              <Clock className="h-4 w-4 text-amber-500" />
             </div>
             <div className="p-4">
               <div className="text-3xl font-bold text-amber-700">
-                {dashboardType === "delegation" ? departmentData.completedRatingTwo : departmentData.pendingTasks}
+                {departmentData.pendingTasks}
               </div>
               <p className="text-xs text-amber-600">
-                {dashboardType === "delegation" ? "Task completed twice" : "Total pending till date"}
+                Total pending till date
               </p>
             </div>
           </div>
@@ -952,20 +855,16 @@ const StaffTasksTable = () => {
           <div className="rounded-lg border border-l-4 border-l-red-500 shadow-md hover:shadow-lg transition-all bg-white">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-red-50 to-red-100 rounded-tr-lg p-4">
               <h3 className="text-sm font-medium text-red-700">
-                {dashboardType === "delegation" ? "Completed" : "Overdue Tasks"}
+                Overdue Tasks
               </h3>
-              {dashboardType === "delegation" ? (
-                <CheckCircle2 className="h-4 w-4 text-red-500" />
-              ) : (
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-              )}
+              <AlertTriangle className="h-4 w-4 text-red-500" />
             </div>
             <div className="p-4">
               <div className="text-3xl font-bold text-red-700">
-                {dashboardType === "delegation" ? departmentData.completedRatingThreePlus : departmentData.overdueTasks}
+                {departmentData.overdueTasks}
               </div>
               <p className="text-xs text-red-600">
-                {dashboardType === "delegation" ? "Task completed more then twice" : "Total overdue till date"}
+                Total overdue till date
               </p>
             </div>
           </div>
@@ -1015,23 +914,6 @@ const StaffTasksTable = () => {
                   className="w-full rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
               </div>
-              {/* <div className="space-y-2 md:w-[180px]">
-                <label htmlFor="status-filter" className="flex items-center text-purple-700">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter by Status
-                </label>
-                <select
-                  id="status-filter"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full rounded-md border border-purple-200 p-2 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="completed">Completed</option>
-                  <option value="overdue">Overdue</option>
-                </select>
-              </div> */}
               <div className="space-y-2 md:w-[180px]">
                 <label htmlFor="staff-filter" className="flex items-center text-purple-700">
                   <Filter className="h-4 w-4 mr-2" />
@@ -1198,7 +1080,7 @@ const StaffTasksTable = () => {
             </div>
           )}
 
-{/* // Modified MIS Report section with date range filter */}
+{/* MIS Report section with date range filter */}
 {activeTab === "mis" && (
   <div className="rounded-lg border border-purple-200 shadow-md bg-white">
     <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100 p-4">
@@ -1344,7 +1226,6 @@ const StaffTasksTable = () => {
       <div className="space-y-8">
         {departmentData.staffMembers.length > 0 ? (
           <>
-            {/* Filter staff members based on tasks due up to today, similar to StaffTasksTable */}
             {(() => {
               // Get filtered staff data with only past to today dates
               const today = new Date();
@@ -1541,3 +1422,4 @@ const StaffTasksTable = () => {
     </AdminLayout>
   )
 }
+                                

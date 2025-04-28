@@ -90,14 +90,14 @@ function App() {
         />
 
          {/* Delegation route for user */}
-         <Route
+         {/* <Route
           path="/dashboard/delegation"
           element={
             <ProtectedRoute>
               <AccountDataPage/>
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* Data routes */}
         <Route

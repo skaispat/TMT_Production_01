@@ -37,14 +37,14 @@ export default function DataPage() {
     //   return <JockeyDataPage />
     case "account":
       return <AccountDataPage />
-    // case "warehouse":
-    //   return <WarehouseDataPage />
-    //   case "purchase":
-    //     return <PurchaseDataPage/>
-    //     case "director":
-    //     return <DirectorDataPage/>
-    //     case "managing-director":
-    //       return <ManagingDirector/>
+    case "warehouse":
+      return <WarehouseDataPage />
+      case "purchase":
+        return <PurchaseDataPage/>
+        case "director":
+        return <DirectorDataPage/>
+        case "managing-director":
+          return <ManagingDirector/>
     //       case "coo":
     //       return <Coo/>
     default:

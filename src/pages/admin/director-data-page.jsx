@@ -6,9 +6,9 @@ import AdminLayout from "../../components/layout/AdminLayout"
 import ReactDOM from 'react-dom';
 
 // Google Apps Script URL
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCl0b_3-jQtZLNGGFngdMaMz7s6X0WYnCZ7Ct58ejTR_sp_SEdR65NptfS7w7S1Jh4/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVfzNQ08ZD2r9wEm3qRlfBX2hxVfE2AoM53pVlAS3PpgBcrtzNukhjdcdvcGxI13sx/exec"
 // Google Drive folder ID
-const DRIVE_FOLDER_ID = "1TzjAIpRAoz017MfzZ0gZaN-v5jyKtg7E"
+const DRIVE_FOLDER_ID = "1xdahLZtnhCGnHve4HdPolTm5y4DLqdyl"
 
 function AccountDataPage() {
   const [accountData, setAccountData] = useState([])
@@ -21,6 +21,7 @@ function AccountDataPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [debugInfo, setDebugInfo] = useState([])
+  const [remarksData, setRemarksData] = useState({}) // New state for remarks
   const [historyData, setHistoryData] = useState([])
   const [showHistory, setShowHistory] = useState(false)
   const [membersList, setMembersList] = useState([])
@@ -311,7 +312,7 @@ const confirmMarkDone = async () => {
     }));
     
     const formData = new FormData();
-    formData.append('sheetName', 'DIRECTOR');
+    formData.append('sheetName', 'HR');
     formData.append('action', 'updateSalesData');
     formData.append('rowData', JSON.stringify(submissionData));
     
@@ -356,7 +357,7 @@ const confirmMarkDone = async () => {
       const pendingAccounts = [];
       const historyRows = [];
       
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/1a1jPYstX2Wy778hD9OpM_PZkYE3KGktL0JxSL8dJiTY/gviz/tq?tqx=out:json&sheet=DIRECTOR`);
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/gviz/tq?tqx=out:json&sheet=HR`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status}`);
@@ -503,9 +504,13 @@ const confirmMarkDone = async () => {
     setSelectedItems(prev => {
       const isSelected = prev.includes(id)
       if (isSelected) {
+        // When unselecting, remove additional data and remarks
         const newAdditionalData = {...additionalData}
+        const newRemarksData = {...remarksData}
         delete newAdditionalData[id]
+        delete newRemarksData[id]
         setAdditionalData(newAdditionalData)
+        setRemarksData(newRemarksData)
         return prev.filter(itemId => itemId !== id)
       } else {
         return [...prev, id]
@@ -518,7 +523,7 @@ const confirmMarkDone = async () => {
     const file = e.target.files[0]
     if (!file) return
     
-    // Store file in state temporarily
+    // HR file in state temporarily
     setAccountData(prev => prev.map(item =>
       item._id === id 
         ? {...item, image: file}
@@ -546,6 +551,18 @@ const confirmMarkDone = async () => {
   const handleSubmit = async () => {
     if (selectedItems.length === 0) {
       alert("Please select at least one item to submit") 
+      return
+    }
+
+    // Validate remarks for items with "No" status
+    const missingRemarks = selectedItems.filter(id => {
+      const additionalStatus = additionalData[id]
+      const remarks = remarksData[id]
+      return additionalStatus === "No" && (!remarks || remarks.trim() === "")
+    })
+
+    if (missingRemarks.length > 0) {
+      alert(`Please provide remarks for items marked as "No". ${missingRemarks.length} item(s) are missing remarks.`)
       return
     }
 
@@ -582,6 +599,7 @@ const confirmMarkDone = async () => {
           taskId: id,
           rowIndex: item._rowIndex,
           additionalInfo: additionalData[id] || "",
+          remarks: remarksData[id] || "", // Include remarks for column P
           imageData: imageData,
           folderId: DRIVE_FOLDER_ID,
           // Add today's date for column M (submission date)
@@ -590,7 +608,7 @@ const confirmMarkDone = async () => {
       }))
       
       const formData = new FormData()
-      formData.append('sheetName', 'DIRECTOR')
+      formData.append('sheetName', 'HR')
       formData.append('action', 'updateSalesData')
       formData.append('rowData', JSON.stringify(submissionData))
       
@@ -611,6 +629,7 @@ const confirmMarkDone = async () => {
         setSuccessMessage(`Successfully processed ${selectedItems.length} account records! Columns M, O and P updated.`)
         setSelectedItems([])
         setAdditionalData({})
+        setRemarksData({}) // Clear remarks data
         
         // Refresh data to see updated image URLs
         setTimeout(() => {
@@ -626,6 +645,7 @@ const confirmMarkDone = async () => {
       setIsSubmitting(false)
     }
   }
+
   
   return (
     <AdminLayout>
@@ -979,6 +999,9 @@ const confirmMarkDone = async () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Remarks
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Upload Image
                     </th>
                   </tr>
@@ -1006,19 +1029,39 @@ const confirmMarkDone = async () => {
                             </div>
                           </td>
                         ))}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <select
-                            disabled={!selectedItems.includes(account._id)}
-                            value={additionalData[account._id] || ""}
-                            onChange={(e) => setAdditionalData(prev => ({...prev, [account._id]: e.target.value}))}
-                            className="border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
-                          >
-                            <option value="">Select...</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                          </select>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                         <td className="px-6 py-4 whitespace-nowrap bg-yellow-50">
+                      <select
+                        disabled={!selectedItems.includes(account._id)}
+                        value={additionalData[account._id] || ""}
+                        onChange={(e) => {
+                          setAdditionalData(prev => ({...prev, [account._id]: e.target.value}));
+                          // Reset remarks if status changes
+                          if (e.target.value !== "No") {
+                            setRemarksData(prev => {
+                              const newData = {...prev};
+                              delete newData[account._id];
+                              return newData;
+                            });
+                          }
+                        }}
+                        className="border border-gray-300 rounded-md px-2 py-1 w-full disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Select...</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap bg-orange-50">
+  <input
+    type="text"
+    placeholder="Enter remarks"
+    disabled={!selectedItems.includes(account._id) || !additionalData[account._id]}
+    value={remarksData[account._id] || ""}
+    onChange={(e) => setRemarksData(prev => ({...prev, [account._id]: e.target.value}))}
+    className="border rounded-md px-2 py-1 w-full border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
+  />
+</td>
+                        <td className="px-6 py-4 whitespace-nowrap bg-green-50">
                           {account.image ? (
                             <div className="flex items-center">
                               <img

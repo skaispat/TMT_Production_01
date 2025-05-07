@@ -166,7 +166,7 @@ export default function AssignTask() {
   // Function to fetch options from master sheet
   const fetchMasterSheetOptions = async () => {
     try {
-      const masterSheetId = '1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE'
+      const masterSheetId = '1ZeQWagWsRaTJXmQVU9aURP8BmH7QgHuckLxir-dHc0Q'
       const masterSheetName = 'master'
       
       const url = `https://docs.google.com/spreadsheets/d/${masterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(masterSheetName)}`
@@ -193,7 +193,7 @@ export default function AssignTask() {
       const doers = []
   
       // Process all rows starting from index 0
-      data.table.rows.forEach((row) => {
+      data.table.rows.slice(1).forEach((row) => {
         // Column A - Departments
         if (row.c && row.c[0] && row.c[0].v) {
           const value = row.c[0].v.toString().trim()
@@ -254,7 +254,7 @@ export default function AssignTask() {
 // Add a function to get the last task ID
 const getLastTaskId = async (sheetName) => {
   try {
-    const url = `https://docs.google.com/spreadsheets/d/1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`
+    const url = `https://docs.google.com/spreadsheets/d/1ZeQWagWsRaTJXmQVU9aURP8BmH7QgHuckLxir-dHc0Q/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`
 
     const response = await fetch(url)
     if (!response.ok) {
@@ -303,7 +303,7 @@ const formatDateToDDMMYYYY = (date) => {
 // Function to fetch working days from the Working Day Calendar sheet
 const fetchWorkingDays = async () => {
   try {
-    const sheetId = '1OML53kwf2UBXyp6beojKt1Nhn-bUS8iu8I4-AUz9ngE'
+    const sheetId = '1ZeQWagWsRaTJXmQVU9aURP8BmH7QgHuckLxir-dHc0Q'
     const sheetName = 'Working Day Calender'
     
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`
@@ -536,7 +536,7 @@ const handleSubmit = async (e) => {
     formPayload.append('rowData', JSON.stringify(allTasksData))
     formPayload.append('batchInsert', 'true')
 
-    await fetch('https://script.google.com/macros/s/AKfycbxVfzNQ08ZD2r9wEm3qRlfBX2hxVfE2AoM53pVlAS3PpgBcrtzNukhjdcdvcGxI13sx/exec', {
+    await fetch('https://script.google.com/macros/s/AKfycbx7oyzDV2zcpYgqppB1n11iyA0QF_hGYeHwvg4g1iN3ecFQZP6QGRZz1VEAuQf-VXs5/exec', {
       method: 'POST',
       body: formPayload,
       mode: 'no-cors'

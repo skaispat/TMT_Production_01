@@ -37,15 +37,15 @@ export default function AdminLayout({ children, darkMode, toggleDarkMode }) {
 
   // Filter dataCategories based on user role
   const dataCategories = [
-    { id: "main", name: "Store", link: "/dashboard/data/main" },
+   // { id: "main", name: "Store", link: "/dashboard/data/main" },
     { id: "sales", name: "HouseKeeping", link: "/dashboard/data/sales" },
     // { id: "service", name: "Service", link: "/dashboard/data/service" },
-    { id: "account", name: "Account", link: "/dashboard/data/account" },
-    { id: "warehouse", name: "Security", link: "/dashboard/data/warehouse" },
-    // // { id: "delegation", name: "Delegation", link: "/dashboard/data/delegation" },
-    { id: "purchase", name: "Slag Crusher", link: "/dashboard/data/purchase" },
-    { id: "director", name: "Hr", link: "/dashboard/data/director" },
-    { id: "managing-director", name: "Mgmt", link: "/dashboard/data/managing-director" },
+    //{ id: "account", name: "Account", link: "/dashboard/data/account" },
+    //{ id: "warehouse", name: "Security", link: "/dashboard/data/warehouse" },
+// { id: "delegation", name: "Delegation", link: "/dashboard/data/delegation" },
+//    { id: "purchase", name: "Slag Crusher", link: "/dashboard/data/purchase" },
+  //  { id: "director", name: "Hr", link: "/dashboard/data/director" },
+    //{ id: "managing-director", name: "Mgmt", link: "/dashboard/data/managing-director" },
     // { id: "coo", name: "COO", link: "/dashboard/data/coo" },
     // { id: "jockey", name: "Jockey", link: "/dashboard/data/jockey" },
   ]

@@ -36,7 +36,7 @@ const LoginPage = () => {
     const fetchMasterData = async () => {
       try {
         setIsDataLoading(true)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVfzNQ08ZD2r9wEm3qRlfBX2hxVfE2AoM53pVlAS3PpgBcrtzNukhjdcdvcGxI13sx/exec"
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7oyzDV2zcpYgqppB1n11iyA0QF_hGYeHwvg4g1iN3ecFQZP6QGRZz1VEAuQf-VXs5/exec"
         
         // Using POST for better data handling
         const formData = new FormData()

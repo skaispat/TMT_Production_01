@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "../../components/ui/tabs"
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "../../components/ui/Tabs"
 import { PackageOpen, RefreshCw } from 'lucide-react'
 import PendingRecords from "./Pending"
 import HistoryRecords from "./History"

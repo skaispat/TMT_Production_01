@@ -418,7 +418,7 @@ export default function TmtProductionPage() {
   // If not mounted yet or auth is loading, show a skeleton
   if (!isMounted || authLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-slate-50">
         <Header />
         <div className="container mx-auto py-6 px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
@@ -441,17 +441,17 @@ export default function TmtProductionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 ">
       <Header />
 
       <div className="container mx-auto py-6 px-4 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-200 flex items-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center">
               <Hammer className="mr-3 h-6 w-6 md:h-8 md:w-8" />
               TMT Production {user?.isAdmin ? "(All Brands)" : `(${user?.username || ''})`}
             </h1>
-            <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-sm md:text-base text-slate-600 mt-2">
               {user?.isAdmin ? 
                 "Manage TMT production records for all brands" :
                 "Manage your TMT production records"
@@ -462,7 +462,7 @@ export default function TmtProductionPage() {
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="flex-1 md:flex-initial border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex-1 md:flex-initial border-slate-200 text-slate-700 hover:bg-slate-100"
               disabled={refreshing}
             >
               <RefreshCw className={`h-5 w-5 mr-2 ${refreshing ? "animate-spin" : ""}`} />
@@ -472,7 +472,7 @@ export default function TmtProductionPage() {
         </div>
 
         <Tabs defaultValue="pending" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="bg-slate-100 dark:bg-slate-800 w-full md:w-auto">
+          <TabsList className="bg-slate-100 w-full md:w-auto">
             <TabsTrigger
               value="pending"
               className="flex-1 md:flex-initial data-[state=active]:bg-slate-700 data-[state=active]:text-white"
@@ -488,12 +488,12 @@ export default function TmtProductionPage() {
           </TabsList>
 
           <TabsContent value="pending" className="mt-6">
-            <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
-              <CardHeader className="bg-slate-100 dark:bg-slate-800 rounded-t-lg">
-                <CardTitle className="text-lg md:text-xl text-slate-800 dark:text-slate-200">
+            <Card className="border-slate-200  shadow-sm">
+              <CardHeader className="bg-slate-100  rounded-t-lg">
+                <CardTitle className="text-lg md:text-xl text-slate-800 ">
                   {user?.isAdmin ? "All Pending TMT Production Records" : `My Pending TMT Production Records (${user?.username || ''})`}
                 </CardTitle>
-                <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
+                <CardDescription className="text-sm text-slate-500">
                   {user?.isAdmin ? 
                     "All records that are in progress" :
                     "Your records that are in progress"
@@ -512,16 +512,16 @@ export default function TmtProductionPage() {
                     {/* Mobile Card View */}
                     <div className="md:hidden">
                       {pendingRecords.map((record) => (
-                        <div key={record.id} className="border rounded-lg p-4 mb-4 bg-white dark:bg-slate-800">
+                        <div key={record.id} className="border rounded-lg p-4 mb-4 bg-white ">
                           <div className="flex justify-between items-start mb-3">
                             <div>
-                              <h3 className="font-medium text-slate-800 dark:text-slate-200">{record.heatNo}</h3>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">{record.brandName}</p>
+                              <h3 className="font-medium text-slate-800 ">{record.heatNo}</h3>
+                              <p className="text-sm text-slate-600 ">{record.brandName}</p>
                             </div>
                             {/* Only show Production button for full admin */}
                             {user?.isFullAdmin && (
                               <Button
-                                className="h-9 px-4 text-xs border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                className="h-9 px-4 text-xs border-slate-200 text-slate-700 hover:bg-slate-100   "
                                 variant="outline"
                                 onClick={() => openProductionForm(record)}
                               >
@@ -532,12 +532,12 @@ export default function TmtProductionPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Size</p>
-                              <p className="text-sm text-slate-800 dark:text-slate-200">{record.sizeOfTmt}</p>
+                              <p className="text-xs text-slate-500 ">Size</p>
+                              <p className="text-sm text-slate-800 ">{record.sizeOfTmt}</p>
                             </div>
                             <div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Pending Qty</p>
-                              <p className="text-sm text-slate-800 dark:text-slate-200">{record.pendingQty || "N/A"}</p>
+                              <p className="text-xs text-slate-500 ">Pending Qty</p>
+                              <p className="text-sm text-slate-800 ">{record.pendingQty || "N/A"}</p>
                             </div>
                           </div>
                         </div>
@@ -548,22 +548,22 @@ export default function TmtProductionPage() {
                     <div className="hidden md:block">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Heat No.</th>
-                            <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Brand Name</th>
-                            <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Size</th>
-                            <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">
+                          <tr className="border-b border-slate-200 ">
+                            <th className="text-left py-4 px-4 text-slate-600 ">Heat No.</th>
+                            <th className="text-left py-4 px-4 text-slate-600 ">Brand Name</th>
+                            <th className="text-left py-4 px-4 text-slate-600 ">Size</th>
+                            <th className="text-left py-4 px-4 text-slate-600 ">
                               Total Planning Qty
                             </th>
-                            <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">
+                            <th className="text-left py-4 px-4 text-slate-600 ">
                               Total Production Qty
                             </th>
-                            <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">
+                            <th className="text-left py-4 px-4 text-slate-600 ">
                               Total Pending Qty
                             </th>
                             {/* Only show Actions column for full admin */}
                             {user?.isFullAdmin && (
-                              <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Actions</th>
+                              <th className="text-left py-4 px-4 text-slate-600 ">Actions</th>
                             )}
                           </tr>
                         </thead>
@@ -571,7 +571,7 @@ export default function TmtProductionPage() {
                           {pendingRecords.map((record) => (
                             <tr
                               key={record.id}
-                              className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              className="border-b border-slate-200  hover:bg-slate-50 /50"
                             >
                               <td className="py-4 px-4">{record.heatNo}</td>
                               <td className="py-4 px-4">{record.brandName}</td>
@@ -583,7 +583,7 @@ export default function TmtProductionPage() {
                               {user?.isFullAdmin && (
                                 <td className="py-4 px-4">
                                   <Button
-                                    className="h-10 rounded-md px-4 text-sm border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    className="h-10 rounded-md px-4 text-sm border-slate-200 text-slate-700 hover:bg-slate-100   "
                                     variant="outline"
                                     onClick={() => openProductionForm(record)}
                                   >
@@ -596,7 +596,7 @@ export default function TmtProductionPage() {
                           ))}
                           {pendingRecords.length === 0 && (
                             <tr>
-                              <td colSpan={user?.isFullAdmin ? 7 : 6} className="py-4 text-center text-slate-500 dark:text-slate-400">
+                              <td colSpan={user?.isFullAdmin ? 7 : 6} className="py-4 text-center text-slate-500 ">
                                 {user?.isAdmin ? 
                                   "No pending records found" : 
                                   `No pending records found for brand: ${user?.username || ''}`}
@@ -613,12 +613,12 @@ export default function TmtProductionPage() {
           </TabsContent>
 
           <TabsContent value="history" className="mt-6">
-            <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
-              <CardHeader className="bg-slate-100 dark:bg-slate-800 rounded-t-lg">
-                <CardTitle className="text-lg md:text-xl text-slate-800 dark:text-slate-200">
+            <Card className="border-slate-200  shadow-sm">
+              <CardHeader className="bg-slate-100  rounded-t-lg">
+                <CardTitle className="text-lg md:text-xl text-slate-800 ">
                   {user?.isAdmin ? "All TMT Production History" : `My TMT Production History (${user?.username || ''})`}
                 </CardTitle>
-                <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
+                <CardDescription className="text-sm text-slate-500 ">
                   {user?.isAdmin ? 
                     "All records that have been completed" :
                     "Your records that have been completed"
@@ -637,11 +637,11 @@ export default function TmtProductionPage() {
                     {/* Mobile Card View */}
                     <div className="md:hidden">
                       {completedRecords.map((record) => (
-                        <div key={record.id} className="border rounded-lg p-4 mb-4 bg-white dark:bg-slate-800">
+                        <div key={record.id} className="border rounded-lg p-4 mb-4 bg-white ">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <h3 className="font-medium text-slate-800 dark:text-slate-200">{record.heatNo}</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">{record.brandName}</p>
+                            <h3 className="font-medium text-slate-800 ">{record.heatNo}</h3>
+                            <p className="text-sm text-slate-600 ">{record.brandName}</p>
                           </div>
                           <Badge className={record.brandName === "JSW" ? "bg-blue-500" : "bg-purple-500"}>
                             {record.timeRange || "N/A"}
@@ -649,12 +649,12 @@ export default function TmtProductionPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Total Size</p>
-                            <p className="text-sm text-slate-800 dark:text-slate-200">{record.sizeOfTmt}</p>
+                            <p className="text-xs text-slate-500 ">Total Size</p>
+                            <p className="text-sm text-slate-800 ">{record.sizeOfTmt}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Hours</p>
-                            <p className="text-sm text-slate-800 dark:text-slate-200">{record.hours || "N/A"}</p>
+                            <p className="text-xs text-slate-500 ">Hours</p>
+                            <p className="text-sm text-slate-800 ">{record.hours || "N/A"}</p>
                           </div>
                         </div>
                       </div>
@@ -665,23 +665,23 @@ export default function TmtProductionPage() {
                   <div className="hidden md:block">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Heat No.</th>
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Brand Name</th>
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Time Range</th>
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Hours</th>
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Break Down Time</th>
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">
+                        <tr className="border-b border-slate-200 ">
+                          <th className="text-left py-4 px-4 text-slate-600 ">Heat No.</th>
+                          <th className="text-left py-4 px-4 text-slate-600 ">Brand Name</th>
+                          <th className="text-left py-4 px-4 text-slate-600 ">Time Range</th>
+                          <th className="text-left py-4 px-4 text-slate-600 ">Hours</th>
+                          <th className="text-left py-4 px-4 text-slate-600 ">Break Down Time</th>
+                          <th className="text-left py-4 px-4 text-slate-600 ">
                             Break Down Time Gap
                           </th>
-                          <th className="text-left py-4 px-4 text-slate-600 dark:text-slate-400">Total Size</th>
+                          <th className="text-left py-4 px-4 text-slate-600 ">Total Size</th>
                         </tr>
                       </thead>
                       <tbody>
                         {completedRecords.map((record) => (
                           <tr
                             key={record.id}
-                            className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            className="border-b border-slate-200  hover:bg-slate-50 /50"
                           >
                             <td className="py-4 px-4">{record.heatNo}</td>
                             <td className="py-4 px-4">{record.brandName}</td>
@@ -694,7 +694,7 @@ export default function TmtProductionPage() {
                         ))}
                         {completedRecords.length === 0 && (
                           <tr>
-                            <td colSpan={7} className="py-4 text-center text-slate-500 dark:text-slate-400">
+                            <td colSpan={7} className="py-4 text-center text-slate-500 ">
                               {user?.isAdmin ? 
                                 "No completed records found" : 
                                 `No completed records found for brand: ${user?.username || ''}`}
@@ -719,14 +719,14 @@ export default function TmtProductionPage() {
         <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={closeProductionForm}></div>
 
         {/* Popup Form */}
-        <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-[95vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white  rounded-lg shadow-xl w-full max-w-[95vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
           <form onSubmit={handleSubmitProduction} className="p-6 md:p-10">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-200">New TMT Production</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800 ">New TMT Production</h2>
               <button
                 type="button"
                 onClick={closeProductionForm}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -736,30 +736,30 @@ export default function TmtProductionPage() {
 
             {/* Pre-filled data */}
             <div className="mb-10">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-4">Current Record Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 dark:bg-slate-700 p-6 rounded-lg">
+              <h3 className="text-sm font-medium text-slate-600  mb-4">Current Record Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-6 rounded-lg">
                 <div>
-                  <Label className="text-sm text-slate-600 dark:text-slate-400">Heat No.</Label>
+                  <Label className="text-sm text-slate-600 ">Heat No.</Label>
                   <Input
                     value={selectedRecord?.heatNo || ""}
                     disabled
-                    className="mt-1 bg-slate-100 dark:bg-slate-600 font-medium"
+                    className="mt-1 bg-slate-100 font-medium"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm text-slate-600 dark:text-slate-400">Brand Name</Label>
+                  <Label className="text-sm text-slate-600 ">Brand Name</Label>
                   <Input
                     value={selectedRecord?.brandName || ""}
                     disabled
-                    className="mt-1 bg-slate-100 dark:bg-slate-600 font-medium"
+                    className="mt-1 bg-slate-100 font-medium"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm text-slate-600 dark:text-slate-400">Sizes</Label>
+                  <Label className="text-sm text-slate-600 ">Sizes</Label>
                   <Input
                     value={selectedRecord?.sizeOfTmt || ""}
                     disabled
-                    className="mt-1 bg-slate-100 dark:bg-slate-600 font-medium"
+                    className="mt-1 bg-slate-100 font-medium"
                   />
                 </div>
               </div>
@@ -767,7 +767,7 @@ export default function TmtProductionPage() {
 
             {/* New Production Fields */}
             <div className="mb-10">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-6">Production Information</h3>
+              <h3 className="text-sm font-medium text-slate-600  mb-6">Production Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div>
                   <Label htmlFor="timeRange" className="text-sm font-medium">
@@ -829,16 +829,16 @@ export default function TmtProductionPage() {
             {/* Production Items */}
             <div className="mb-10">
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Production Items</h3>
+                <h3 className="text-sm font-medium text-slate-600 ">Production Items</h3>
                 <p className="text-xs text-slate-500">Add up to 10 production items</p>
               </div>
               {productionForm.productionItems.map((item, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 p-6 bg-slate-50 dark:bg-slate-700 rounded-lg"
+                  className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6 p-6 bg-slate-50 rounded-lg"
                 >
                   <div>
-                    <Label className="text-sm text-slate-600 dark:text-slate-400">Size of TMT {index + 1}</Label>
+                    <Label className="text-sm text-slate-600 ">Size of TMT {index + 1}</Label>
                     <Input
                       value={item.sizeOfTmt}
                       onChange={(e) => handleProductionItemChange(index, "sizeOfTmt", e.target.value)}
@@ -847,7 +847,7 @@ export default function TmtProductionPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-sm text-slate-600 dark:text-slate-400">Piece Qty {index + 1}</Label>
+                    <Label className="text-sm text-slate-600 ">Piece Qty {index + 1}</Label>
                     <Input
                       type="number"
                       value={item.pieceQty}
@@ -857,7 +857,7 @@ export default function TmtProductionPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-sm text-slate-600 dark:text-slate-400">MT Qty {index + 1}</Label>
+                    <Label className="text-sm text-slate-600 ">MT Qty {index + 1}</Label>
                     <Input
                       type="number"
                       step="0.01"

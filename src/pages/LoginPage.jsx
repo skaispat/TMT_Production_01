@@ -62,16 +62,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border-slate-200 dark:border-slate-700">
-        <CardHeader className="bg-slate-100 dark:bg-slate-800 rounded-t-lg">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg border-slate-200">
+        <CardHeader className="bg-slate-100 rounded-t-lg">
           <div className="flex items-center justify-center mb-2">
-            <Factory className="h-12 w-12 text-slate-700 dark:text-slate-300" />
+            <Factory className="h-12 w-12 text-slate-700" />
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-slate-800 dark:text-slate-200">
+          <CardTitle className="text-2xl font-bold text-center text-slate-800">
             TMT Production App
           </CardTitle>
-          <CardDescription className="text-center text-slate-500 dark:text-slate-400">
+          <CardDescription className="text-center text-slate-500">
             Enter your credentials to access the system
           </CardDescription>
         </CardHeader>
@@ -114,7 +114,7 @@ export default function LoginPage() {
           </CardFooter>
         </form>
         <CardFooter className="flex-col space-y-2 border-t pt-4">
-          <div className="text-sm text-slate-500 dark:text-slate-400 text-center">
+          <div className="text-sm text-slate-500 text-center">
             <p>Test accounts configured in Google Sheets:</p>
             <p>Login sheet - Column A for username, Column B for password</p>
             <p>Column C for user type (admin/user)</p>

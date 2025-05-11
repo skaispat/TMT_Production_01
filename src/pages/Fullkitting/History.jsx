@@ -228,13 +228,13 @@ export default function HistoryRecords({ showToast }) {
   }, [fetchData])
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-t-lg px-6 py-4 flex justify-between items-center">
+    <div className="rounded-lg border border-slate-200 shadow-sm">
+      <div className="bg-slate-100 rounded-t-lg px-6 py-4 flex justify-between items-center">
         <div>
-          <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+          <h3 className="text-xl font-semibold text-slate-800">
             {user?.isAdmin ? "All Composition History" : `My Composition History (${user?.username || ''})`}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500">
             {user?.isFullAdmin ? 
               "Full admin access - all history records" : 
               user?.isLimitedAdmin ?
@@ -246,7 +246,7 @@ export default function HistoryRecords({ showToast }) {
         </div>
         <button 
           onClick={handleRefresh}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 h-9 rounded-md px-3"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-slate-200 text-slate-700 hover:bg-slate-100 h-9 rounded-md px-3"
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
@@ -255,14 +255,14 @@ export default function HistoryRecords({ showToast }) {
       </div>
       <div className="p-6">
         {isLoading ? (
-          <div className="h-40 w-full bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md"></div>
+          <div className="h-40 w-full bg-slate-200 animate-pulse rounded-md"></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-700">
+                <tr className="border-b border-slate-200">
                   {HEADERS.map((header) => (
-                    <th key={header.key} className="text-left py-3 px-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    <th key={header.key} className="text-left py-3 px-2 text-slate-600 whitespace-nowrap">
                       {header.label}
                     </th>
                   ))}
@@ -272,7 +272,7 @@ export default function HistoryRecords({ showToast }) {
                 {completedRecords.map((record) => (
                   <tr
                     key={record.id}
-                    className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    className="border-b border-slate-200 hover:bg-slate-50"
                   >
                     {HEADERS.map((header) => (
                       <td key={header.key} className="py-3 px-2 whitespace-nowrap">
@@ -283,7 +283,7 @@ export default function HistoryRecords({ showToast }) {
                 ))}
                 {completedRecords.length === 0 && (
                   <tr>
-                    <td colSpan={HEADERS.length} className="py-4 text-center text-slate-500 dark:text-slate-400">
+                    <td colSpan={HEADERS.length} className="py-4 text-center text-slate-500">
                       {user?.isAdmin ? 
                         "No history records found" : 
                         `No history records found for product: ${user?.username || ''}`}

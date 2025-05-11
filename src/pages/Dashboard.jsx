@@ -265,7 +265,7 @@ export default function Dashboard() {
   // If not mounted yet or auth is loading, show a skeleton
   if (!isMounted || authLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-slate-50">
         <Header />
         <div className="container mx-auto py-6 px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -312,14 +312,14 @@ export default function Dashboard() {
   } = dashboardData
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50">
       <Header />
 
       <div className="container mx-auto py-6 px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200">TMT Production Dashboard</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
+            <h1 className="text-3xl font-bold text-slate-800">TMT Production Dashboard</h1>
+            <p className="text-slate-600 mt-1">
               {user?.isAdmin ? "All Brands" : `${user?.username || ''} Brand`} - Monitor and analyze your TMT production records
             </p>
           </div>
@@ -327,7 +327,7 @@ export default function Dashboard() {
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="border-slate-200 text-slate-700 hover:bg-slate-100"
               disabled={refreshing}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
@@ -338,93 +338,93 @@ export default function Dashboard() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+          <Card className="border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Planning Qty</p>
+                  <p className="text-sm font-medium text-slate-500">Total Planning Qty</p>
                   {isLoading ? (
                     <Skeleton className="h-8 w-24 mt-1" />
                   ) : (
-                    <div className="text-2xl font-bold text-slate-800 dark:text-slate-200">{totalPlanningQty}</div>
+                    <div className="text-2xl font-bold text-slate-800">{totalPlanningQty}</div>
                   )}
                 </div>
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <ClipboardList className="h-6 w-6 text-slate-600 dark:text-slate-400" />
+                <div className="p-2 rounded-lg bg-slate-100">
+                  <ClipboardList className="h-6 w-6 text-slate-600" />
                 </div>
               </div>
-              <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <div className="mt-2 text-sm text-slate-500">
                 <TrendingUp className="inline h-4 w-4 mr-1 text-green-500" />
                 <span className="text-green-500 font-medium">{pendingPlanningRecords}</span> pending records
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+          <Card className="border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Production</p>
+                  <p className="text-sm font-medium text-slate-500">Total Production</p>
                   {isLoading ? (
                     <Skeleton className="h-8 w-24 mt-1" />
                   ) : (
-                    <div className="text-2xl font-bold text-slate-800 dark:text-slate-200">{totalProductionQty}</div>
+                    <div className="text-2xl font-bold text-slate-800">{totalProductionQty}</div>
                   )}
                 </div>
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <Hammer className="h-6 w-6 text-slate-600 dark:text-slate-400" />
+                <div className="p-2 rounded-lg bg-slate-100">
+                  <Hammer className="h-6 w-6 text-slate-600" />
                 </div>
               </div>
-              <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <div className="mt-2 text-sm text-slate-500">
                 <CheckCircle2 className="inline h-4 w-4 mr-1 text-green-500" />
                 <span className="text-green-500 font-medium">{completedProductionRecords}</span> completed records
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+          <Card className="border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Completion Rate</p>
+                  <p className="text-sm font-medium text-slate-500">Completion Rate</p>
                   {isLoading ? (
                     <Skeleton className="h-8 w-24 mt-1" />
                   ) : (
-                    <div className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                    <div className="text-2xl font-bold text-slate-800">
                       {completionRate?.toFixed(1)}%
                     </div>
                   )}
                 </div>
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <BarChart3 className="h-6 w-6 text-slate-600 dark:text-slate-400" />
+                <div className="p-2 rounded-lg bg-slate-100">
+                  <BarChart3 className="h-6 w-6 text-slate-600" />
                 </div>
               </div>
               <div className="mt-2">
                 <Progress
                   value={completionRate}
-                  className="h-2 bg-slate-100 dark:bg-slate-800"
+                  className="h-2 bg-slate-100 "
                   indicatorClassName="bg-green-500"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
+          <Card className="border-slate-200  shadow-sm">
             <CardContent className="pt-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Pending Qty</p>
+                  <p className="text-sm font-medium text-slate-500 ">Total Pending Qty</p>
                   {isLoading ? (
                     <Skeleton className="h-8 w-24 mt-1" />
                   ) : (
-                    <div className="text-2xl font-bold text-slate-800 dark:text-slate-200">{totalPendingQty}</div>
+                    <div className="text-2xl font-bold text-slate-800 ">{totalPendingQty}</div>
                   )}
                 </div>
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-                  <AlertCircle className="h-6 w-6 text-slate-600 dark:text-slate-400" />
+                <div className="p-2 rounded-lg bg-slate-100 ">
+                  <AlertCircle className="h-6 w-6 text-slate-600 " />
                 </div>
               </div>
-              <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <div className="mt-2 text-sm text-slate-500 ">
                 <Calendar className="inline h-4 w-4 mr-1 text-amber-500" />
                 <span className="text-amber-500 font-medium">{pendingPlanningCount}</span> planning,
                 <span className="text-amber-500 font-medium ml-1">{pendingProductionCount}</span> production
@@ -434,10 +434,10 @@ export default function Dashboard() {
         </div>
 
         {/* Analytics Section */}
-        <Card className="border-slate-200 dark:border-slate-700 shadow-sm mb-6">
-          <CardHeader className="bg-slate-100 dark:bg-slate-800 rounded-t-lg">
-            <CardTitle className="text-slate-800 dark:text-slate-200">Production Analytics</CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
+        <Card className="border-slate-200  shadow-sm mb-6">
+          <CardHeader className="bg-slate-100  rounded-t-lg">
+            <CardTitle className="text-slate-800 ">Production Analytics</CardTitle>
+            <CardDescription className="text-slate-500 ">
               Overview of production metrics and performance
             </CardDescription>
           </CardHeader>
@@ -446,7 +446,7 @@ export default function Dashboard() {
               {/* Show brand distribution for admin only */}
               {canAccessAllBrands && (
                 <div>
-                  <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Brand Distribution</h3>
+                  <h3 className="text-sm font-medium text-slate-500  mb-2">Brand Distribution</h3>
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex justify-between mb-1">
@@ -456,7 +456,7 @@ export default function Dashboard() {
                       <Progress
                         value={(brandDistribution.JSW + brandDistribution.Sarthak) > 0 ? 
                               (brandDistribution.JSW / (brandDistribution.JSW + brandDistribution.Sarthak)) * 100 : 0}
-                        className="h-2 bg-slate-100 dark:bg-slate-800"
+                        className="h-2 bg-slate-100 "
                         indicatorClassName="bg-blue-500"
                       />
                     </div>
@@ -468,7 +468,7 @@ export default function Dashboard() {
                       <Progress
                         value={(brandDistribution.JSW + brandDistribution.Sarthak) > 0 ? 
                               (brandDistribution.Sarthak / (brandDistribution.JSW + brandDistribution.Sarthak)) * 100 : 0}
-                        className="h-2 bg-slate-100 dark:bg-slate-800"
+                        className="h-2 bg-slate-100 "
                         indicatorClassName="bg-purple-500"
                       />
                     </div>
@@ -477,7 +477,7 @@ export default function Dashboard() {
               )}
 
               <div>
-                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Planning vs Production</h3>
+                <h3 className="text-sm font-medium text-slate-500  mb-2">Planning vs Production</h3>
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
@@ -486,7 +486,7 @@ export default function Dashboard() {
                     </div>
                     <Progress
                       value={100}
-                      className="h-2 bg-slate-100 dark:bg-slate-800"
+                      className="h-2 bg-slate-100 "
                       indicatorClassName="bg-green-500"
                     />
                   </div>
@@ -498,7 +498,7 @@ export default function Dashboard() {
                     <Progress
                       value={planningVsProduction.planning > 0 ? 
                             (planningVsProduction.production / planningVsProduction.planning) * 100 : 0}
-                      className="h-2 bg-slate-100 dark:bg-slate-800"
+                      className="h-2 bg-slate-100 "
                       indicatorClassName="bg-amber-500"
                     />
                   </div>
@@ -506,7 +506,7 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Top Sizes by Quantity</h3>
+                <h3 className="text-sm font-medium text-slate-500  mb-2">Top Sizes by Quantity</h3>
                 <div className="space-y-2">
                   {topSizes.map(([size, quantity], index) => (
                     <div key={size} className="flex items-center gap-2">
@@ -515,7 +515,7 @@ export default function Dashboard() {
                       </Badge>
                       <Progress
                         value={100}
-                        className="h-2 flex-1 bg-slate-100 dark:bg-slate-800"
+                        className="h-2 flex-1 bg-slate-100 "
                         indicatorClassName={index === 0 ? "bg-slate-500" : index === 1 ? "bg-slate-400" : "bg-slate-300"}
                       />
                       <span className="text-sm font-medium">{quantity}</span>
@@ -528,10 +528,10 @@ export default function Dashboard() {
         </Card>
 
         {/* Production Data Table */}
-        <Card className="border-slate-200 dark:border-slate-700 shadow-sm mt-6">
-          <CardHeader className="bg-slate-100 dark:bg-slate-800 rounded-t-lg">
-            <CardTitle className="text-slate-800 dark:text-slate-200">Production Data</CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
+        <Card className="border-slate-200  shadow-sm mt-6">
+          <CardHeader className="bg-slate-100  rounded-t-lg">
+            <CardTitle className="text-slate-800 ">Production Data</CardTitle>
+            <CardDescription className="text-slate-500 ">
               Comprehensive view of planning and production data
             </CardDescription>
           </CardHeader>
@@ -542,22 +542,22 @@ export default function Dashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Heat No.</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Brand Name</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Sizes</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Total Planning Qty</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Total Production Qty</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Total Pending Qty</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Date</th>
-                      <th className="text-left py-3 px-2 text-slate-600 dark:text-slate-400">Status</th>
+                    <tr className="border-b border-slate-200 ">
+                      <th className="text-left py-3 px-2 text-slate-600 ">Heat No.</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Brand Name</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Sizes</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Total Planning Qty</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Total Production Qty</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Total Pending Qty</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Date</th>
+                      <th className="text-left py-3 px-2 text-slate-600 ">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recentRecords.map((record) => (
                       <tr
                         key={record.id}
-                        className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        className="border-b border-slate-200  hover:bg-slate-50"
                       >
                         <td className="py-3 px-2">{record.heatNo}</td>
                         <td className="py-3 px-2">{record.brandName}</td>
@@ -592,7 +592,7 @@ export default function Dashboard() {
                     ))}
                     {recentRecords.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="py-4 text-center text-slate-500 dark:text-slate-400">
+                        <td colSpan={8} className="py-4 text-center text-slate-500 ">
                           No production data found
                         </td>
                       </tr>

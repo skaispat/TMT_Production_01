@@ -390,15 +390,15 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
       <form onSubmit={handleSubmit}>
         <div
           ref={modalRef}
-          className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto"
         >
           {/* Modal Header */}
-          <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">Full Kitting Details</h2>
+          <div className="flex justify-between items-center p-4 border-b border-slate-200">
+            <h2 className="text-xl font-semibold text-slate-800 ">Full Kitting Details</h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              className="text-slate-500 hover:text-slate-700"
             >
               <X className="h-5 w-5" />
             </button>
@@ -408,7 +408,7 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
           <div className="p-4">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label htmlFor="heatNumber" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="heatNumber" className="block text-sm font-medium text-slate-700 mb-1">
                   Heat Number
                 </label>
                 <input
@@ -416,12 +416,12 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
                   type="text"
                   value={heatNumber}
                   onChange={(e) => setHeatNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                  className="w-full px-3 py-2 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                   required
                 />
               </div>
               <div>
-                <label htmlFor="productName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="productName" className="block text-sm font-medium text-slate-700  mb-1">
                   Product Name
                 </label>
                 <input
@@ -429,7 +429,7 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
                   type="text"
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 "
                   required
                 />
               </div>
@@ -450,30 +450,30 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-slate-100 dark:bg-slate-800">
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left w-16">SI no</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Particulars</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Yield</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Fem</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Price</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left bg-yellow-100 dark:bg-yellow-900">
+                  <tr className="bg-slate-100 ">
+                    <th className="border border-slate-300  p-2 text-left w-16">SI no</th>
+                    <th className="border border-slate-300  p-2 text-left">Particulars</th>
+                    <th className="border border-slate-300  p-2 text-left">Yield</th>
+                    <th className="border border-slate-300  p-2 text-left">Fem</th>
+                    <th className="border border-slate-300  p-2 text-left">Price</th>
+                    <th className="border border-slate-300  p-2 text-left bg-yellow-100">
                       %
                     </th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Yield</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Fem</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left">Price</th>
-                    <th className="border border-slate-300 dark:border-slate-600 p-2 text-left w-16">Action</th>
+                    <th className="border border-slate-300  p-2 text-left">Yield</th>
+                    <th className="border border-slate-300  p-2 text-left">Fem</th>
+                    <th className="border border-slate-300  p-2 text-left">Price</th>
+                    <th className="border border-slate-300  p-2 text-left w-16">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((row) => (
-                    <tr key={row.id} className={row.id % 2 === 0 ? "" : "bg-yellow-50 dark:bg-yellow-900/20"}>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">{row.id}</td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                    <tr key={row.id} className={row.id % 2 === 0 ? "" : "bg-yellow-50"}>
+                      <td className="border border-slate-300  p-2">{row.id}</td>
+                      <td className="border border-slate-300  p-2">
                         <select
                           value={row.particulars}
                           onChange={(e) => updateRowData(row.id, "particulars", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         >
                           <option value="">Select material</option>
                           {materialOptions.map((option) => (
@@ -483,69 +483,69 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
                           ))}
                         </select>
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         <input
                           type="number"
                           value={row.yield1}
                           onChange={(e) => updateRowData(row.id, "yield1", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         <input
                           type="number"
                           value={row.fem1}
                           onChange={(e) => updateRowData(row.id, "fem1", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         <input
                           type="number"
                           value={row.price1}
                           onChange={(e) => updateRowData(row.id, "price1", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2 bg-yellow-100 dark:bg-yellow-900/50">
+                      <td className="border border-slate-300  p-2 bg-yellow-100">
                         <input
                           type="number"
                           value={row.percent}
                           onChange={(e) => updateRowData(row.id, "percent", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                           placeholder="Enter %"
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         <input
                           type="text"
                           value={row.yield2}
                           onChange={(e) => updateRowData(row.id, "yield2", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         <input
                           type="text"
                           value={row.fem2}
                           onChange={(e) => updateRowData(row.id, "fem2", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         <input
                           type="text"
                           value={row.price2}
                           onChange={(e) => updateRowData(row.id, "price2", e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                          className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                         />
                       </td>
-                      <td className="border border-slate-300 dark:border-slate-600 p-2">
+                      <td className="border border-slate-300  p-2">
                         {rows.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeRow(row.id)}
-                            className="p-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-md"
+                            className="p-1 text-slate-500 hover:text-slate-700 rounded-md"
                           >
                             <X className="h-4 w-4" />
                           </button>
@@ -558,151 +558,151 @@ export function FullKittingModal({ isOpen, onClose, recordData, onProcessed, sho
                   <tr>
                     <td
                       colSpan={5}
-                      className="border border-slate-300 dark:border-slate-600 p-2 text-right font-medium"
+                      className="border border-slate-300  p-2 text-right font-medium"
                     >
                       Manufacturing Cost
                     </td>
                     <td
                       colSpan={3}
-                      className="border border-slate-300 dark:border-slate-600 p-2 bg-yellow-100 dark:bg-yellow-900/50"
+                      className="border border-slate-300 p-2 bg-yellow-100"
                     ></td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2">
+                    <td className="border border-slate-300  p-2">
                       <input
                         type="number"
                         value={manufacturingCost}
                         onChange={(e) => setManufacturingCost(e.target.value)}
-                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                        className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                       />
                     </td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                    <td className="border border-slate-300  p-2"></td>
                   </tr>
 
                   {/* Interest Days Row */}
                   <tr>
                     <td
                       colSpan={5}
-                      className="border border-slate-300 dark:border-slate-600 p-2 text-right font-medium"
+                      className="border border-slate-300  p-2 text-right font-medium"
                     >
                       interest (days)
                     </td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2 bg-yellow-100 dark:bg-yellow-900/50">
+                    <td className="border border-slate-300 p-2 bg-yellow-100">
                       <input
                         type="number"
                         value={interestDays}
                         onChange={(e) => setInterestDays(e.target.value)}
-                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                        className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                       />
                     </td>
-                    <td colSpan={2} className="border border-slate-300 dark:border-slate-600 p-2"></td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2">
+                    <td colSpan={2} className="border border-slate-300  p-2"></td>
+                    <td className="border border-slate-300  p-2">
                       <input
                         type="text"
                         value={interestAmount}
                         readOnly
-                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                        className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                       />
                     </td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                    <td className="border border-slate-300  p-2"></td>
                   </tr>
 
                   {/* Transporting Row */}
                   <tr>
                     <td
                       colSpan={5}
-                      className="border border-slate-300 dark:border-slate-600 p-2 text-right font-medium"
+                      className="border border-slate-300  p-2 text-right font-medium"
                     >
                       transporting (FOR)
                     </td>
-                    <td colSpan={4} className="border border-slate-300 dark:border-slate-600 p-2">
+                    <td colSpan={4} className="border border-slate-300  p-2">
                       <input
                         type="number"
                         value={transporting}
                         onChange={(e) => setTransporting(e.target.value)}
-                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200"
+                        className="w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  "
                       />
                     </td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                    <td className="border border-slate-300  p-2"></td>
                   </tr>
 
                   {/* Total Row */}
                   <tr className="font-bold">
-                    <td colSpan={5} className="border border-slate-300 dark:border-slate-600 p-2 text-right">
+                    <td colSpan={5} className="border border-slate-300  p-2 text-right">
                       Total
                     </td>
-                    <td className="border border-slate-300 dark:border-slate-600 p-2 bg-yellow-100 dark:bg-yellow-900/50">
+                    <td className="border border-slate-300 p-2 bg-yellow-100">
                     {totals.percentTotal}%
                    </td>
-                   <td className="border border-slate-300 dark:border-slate-600 p-2">{totals.yield2Total}</td>
-                   <td className="border border-slate-300 dark:border-slate-600 p-2">{totals.fem2Total}</td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2">{totalPrice.toFixed(2)}</td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                   <td className="border border-slate-300  p-2">{totals.yield2Total}</td>
+                   <td className="border border-slate-300  p-2">{totals.fem2Total}</td>
+                  <td className="border border-slate-300  p-2">{totalPrice.toFixed(2)}</td>
+                  <td className="border border-slate-300  p-2"></td>
                 </tr>
 
                 {/* Selling Price Row */}
                 <tr>
                   <td
                     colSpan={5}
-                    className="border border-slate-300 dark:border-slate-600 p-2 text-right font-medium"
+                    className="border border-slate-300  p-2 text-right font-medium"
                   >
                     SELLING PRICE
                   </td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2">
+                  <td className="border border-slate-300  p-2">
                     <input type="text"
                     value={sellingPriceInput}
                     onChange={(e) => setSellingPriceInput(e.target.value)}
-                    className='w-full px-2 py-1 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 dark:text-slate-200'
+                    className='w-full px-2 py-1 border border-slate-300  rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-500  '
                     placeholder={sellingPrice}
                     />
                   </td>
                   {/* <td
                     colSpan={2}
-                    className="border border-slate-300 dark:border-slate-600 p-2 text-center"
+                    className="border border-slate-300  p-2 text-center"
                   >
                     BD
                   </td> */}
-                  {/* <td className="border border-slate-300 dark:border-slate-600 p-2">{sellingPrice}</td> */}
-                  <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                  {/* <td className="border border-slate-300  p-2">{sellingPrice}</td> */}
+                  <td className="border border-slate-300  p-2"></td>
                 </tr>
 
                 {/* Variable Cost Row */}
                 <tr>
                   <td
                     colSpan={5}
-                    className="border border-slate-300 dark:border-slate-600 p-2 text-right font-medium"
+                    className="border border-slate-300  p-2 text-right font-medium"
                   >
                     VARIABLE COST
                   </td>
-                  <td colSpan={3} className="border border-slate-300 dark:border-slate-600 p-2">
+                  <td colSpan={3} className="border border-slate-300  p-2">
                     {variableCost.toFixed(2)}
                   </td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                  <td className="border border-slate-300  p-2"></td>
+                  <td className="border border-slate-300  p-2"></td>
                 </tr>
 
                 {/* GP Percentage Row */}
                 <tr>
                   <td
                     colSpan={5}
-                    className="border border-slate-300 dark:border-slate-600 p-2 text-right font-medium"
+                    className="border border-slate-300  p-2 text-right font-medium"
                   >
                     GP %AGE
                   </td>
-                  <td colSpan={3} className="border border-slate-300 dark:border-slate-600 p-2">
+                  <td colSpan={3} className="border border-slate-300  p-2">
                     {gpPercentage}%
                   </td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
-                  <td className="border border-slate-300 dark:border-slate-600 p-2"></td>
+                  <td className="border border-slate-300  p-2"></td>
+                  <td className="border border-slate-300  p-2"></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           {/* Modal Footer */}
-          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-200 ">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              className="px-4 py-2 border border-slate-300  rounded-md shadow-sm text-slate-700  hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-500"
             >
               Cancel
             </button>

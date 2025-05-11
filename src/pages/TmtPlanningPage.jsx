@@ -223,7 +223,7 @@ export default function TmtPlanningPage() {
   // If not mounted yet or loading dropdown data, show a skeleton
   if (!isMounted || isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-slate-50">
         <Header />
         <div className="container mx-auto py-6 px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -239,24 +239,24 @@ export default function TmtPlanningPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50">
       <Header />
 
       <div className="container mx-auto py-6 px-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200 flex items-center">
+          <h1 className="text-3xl font-bold text-slate-800 flex items-center">
             <ClipboardList className="mr-2 h-6 w-6" />
             TMT Planning Form
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-slate-600 mt-1">
             Create a new TMT planning record to initiate the production process
           </p>
         </div>
 
-        <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
-          <CardHeader className="bg-slate-100 dark:bg-slate-800 rounded-t-lg">
-            <CardTitle className="text-slate-800 dark:text-slate-200">New TMT Planning</CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400">
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="bg-slate-100 rounded-t-lg">
+            <CardTitle className="text-slate-800">New TMT Planning</CardTitle>
+            <CardDescription className="text-slate-500">
               Fill in the details to create a new TMT planning record
             </CardDescription>
           </CardHeader>

@@ -51,7 +51,7 @@ export default function FullKittingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50">
         <Header/>
       {/* Simple toast notification */}
       {toastMessage && (
@@ -66,18 +66,18 @@ export default function FullKittingPage() {
       <div className="container mx-auto py-6 px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200 flex items-center">
+            <h1 className="text-3xl font-bold text-slate-800 flex items-center">
               <PackageOpen className="mr-2 h-6 w-6" />
               Full Kitting Section
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-slate-600 mt-1">
               Manage TMT planning records and sync them to Google Sheets
             </p>
           </div>
           <button
             onClick={refreshData}
             disabled={refreshing}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 h-10 px-4 py-2"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-slate-200 text-slate-700 hover:bg-slate-100 h-10 px-4 py-2"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -85,7 +85,7 @@ export default function FullKittingPage() {
         </div>
 
         <Tabs defaultValue="pending" value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-slate-100 dark:bg-slate-800">
+          <TabsList className="bg-slate-100">
             <TabsTrigger value="pending" className="data-[state=active]:bg-slate-700 data-[state=active]:text-white">
               Pending
             </TabsTrigger>
